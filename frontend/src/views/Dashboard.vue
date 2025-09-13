@@ -44,6 +44,13 @@
               </a>
               <ul class="dropdown-menu">
                 <li>
+                  <router-link to="/election-management" class="dropdown-item">
+                    <i class="fas fa-home me-2"></i>
+                    Overview
+                  </router-link>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
                   <router-link to="/counties" class="dropdown-item">
                     <i class="fas fa-map-marker-alt me-2"></i>
                     Counties
@@ -147,6 +154,16 @@
                   Election Management
                 </a>
                 <ul class="dropdown-menu">
+                  <li>
+                    <router-link
+                      to="/election-management"
+                      class="dropdown-item"
+                    >
+                      <i class="fas fa-home me-2"></i>
+                      Overview
+                    </router-link>
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
                   <li>
                     <router-link to="/counties" class="dropdown-item">
                       <i class="fas fa-map-marker-alt me-2"></i>
