@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 const Login = () => import('@/views/Login.vue');
 const Home = () => import('@/views/Home.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
+const UserManagement = () => import('@/views/UserManagement.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -27,6 +28,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'Dashboard',
     component: Dashboard,
     meta: { requiresAuth: true, title: 'Dashboard - e-Tally' },
+  },
+  {
+    path: '/users',
+    name: 'UserManagement',
+    component: UserManagement,
+    meta: { requiresAuth: true, title: 'User Management - e-Tally' },
   },
   {
     path: '/:pathMatch(.*)*',

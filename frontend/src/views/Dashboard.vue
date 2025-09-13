@@ -26,10 +26,10 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">
+              <router-link to="/users" class="nav-link">
                 <i class="fas fa-users me-1"></i>
                 Users
-              </a>
+              </router-link>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#">
@@ -98,10 +98,10 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">
+                <router-link to="/users" class="nav-link">
                   <i class="fas fa-users me-2"></i>
                   User Management
-                </a>
+                </router-link>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#">
