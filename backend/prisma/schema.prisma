@@ -1,0 +1,325 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  username    String    @unique
+  password    String
+  firstName   String
+  lastName    String
+  phoneNumber String?   @unique
+  imei        String?   @unique
+  role        UserRole
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  assignedCounties       UserCounty[]
+  assignedConstituencies UserConstituency[]
+  assignedCAWs           UserCAW[]
+  reportedResults        ElectionResult[]
+  reportedIncidents      Incident[]
+  auditLogs              AuditLog[]
+  RefreshToken           RefreshToken[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CENTRAL_COMMAND_ADMIN
+  CENTRAL_COMMAND_USER
+  PRESIDENTIAL_ELECTION_OBSERVER
+  PARLIAMENTARY_ELECTION_OBSERVER
+  LOCAL_GOVERNMENT_ELECTION_OBSERVER
+  SENATORIAL_ELECTION_OBSERVER
+  GUBERNATORIAL_ELECTION_OBSERVER
+  COUNTY_LEVEL_SUPERVISOR
+  CONSTITUENCY_LEVEL_SUPERVISOR
+  COUNTY_ASSEMBLY_WARD_SUPERVISOR
+}
+
+// Geographic Hierarchy
+model County {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  constituencies Constituency[]
+  users          UserCounty[]
+
+  @@map("counties")
+}
+
+model Constituency {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  countyId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  county          County             @relation(fields: [countyId], references: [id], onDelete: Cascade)
+  caws            CAW[]
+  users           UserConstituency[]
+  pollingStations PollingStation[]
+  Candidate       Candidate[]
+
+  @@map("constituencies")
+}
+
+model CAW {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  constituencyId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  constituency    Constituency     @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  users           UserCAW[]
+  pollingStations PollingStation[]
+  Candidate       Candidate[]
+
+  @@map("caws")
+}
+
+// User Geographic Assignments
+model UserCounty {
+  id        String   @id @default(cuid())
+  userId    String
+  countyId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  county County @relation(fields: [countyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, countyId])
+  @@map("user_counties")
+}
+
+model UserConstituency {
+  id             String   @id @default(cuid())
+  userId         String
+  constituencyId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  constituency Constituency @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, constituencyId])
+  @@map("user_constituencies")
+}
+
+model UserCAW {
+  id        String   @id @default(cuid())
+  userId    String
+  cawId     String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caw  CAW  @relation(fields: [cawId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cawId])
+  @@map("user_caws")
+}
+
+// Polling Stations
+model PollingStation {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  constituencyId String
+  cawId          String
+  latitude       Float?
+  longitude      Float?
+  address        String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relationships
+  constituency      Constituency        @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  caw               CAW                 @relation(fields: [cawId], references: [id], onDelete: Cascade)
+  voterRegistration VoterRegistration[]
+  electionResults   ElectionResult[]
+  incidents         Incident[]
+
+  @@map("polling_stations")
+}
+
+// Voter Registration
+model VoterRegistration {
+  id               String   @id @default(cuid())
+  pollingStationId String
+  registeredVoters Int
+  source           String // IEBC, Manual, etc.
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relationships
+  pollingStation PollingStation @relation(fields: [pollingStationId], references: [id], onDelete: Cascade)
+
+  @@map("voter_registrations")
+}
+
+// Candidates
+model Candidate {
+  id             String       @id @default(cuid())
+  name           String
+  party          String?
+  electionType   ElectionType
+  constituencyId String?
+  cawId          String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relationships
+  constituency Constituency?    @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  caw          CAW?             @relation(fields: [cawId], references: [id], onDelete: Cascade)
+  results      ElectionResult[]
+
+  @@map("candidates")
+}
+
+enum ElectionType {
+  PRESIDENTIAL
+  PARLIAMENTARY
+  LOCAL_GOVERNMENT
+  SENATORIAL
+  GUBERNATORIAL
+  COUNTY_ASSEMBLY_REPRESENTATIVE
+  WOMENS_REPRESENTATIVE
+}
+
+// Election Results
+model ElectionResult {
+  id               String    @id @default(cuid())
+  pollingStationId String
+  candidateId      String
+  votes            Int
+  spoiltVotes      Int?      @default(0)
+  totalVotes       Int
+  voterTurnout     Float
+  isVerified       Boolean   @default(false)
+  reportedAt       DateTime  @default(now())
+  verifiedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relationships
+  pollingStation PollingStation @relation(fields: [pollingStationId], references: [id], onDelete: Cascade)
+  candidate      Candidate      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  reporter       User           @relation(fields: [reporterId], references: [id])
+  reporterId     String
+
+  @@unique([pollingStationId, candidateId])
+  @@map("election_results")
+}
+
+// Incidents
+model Incident {
+  id               String           @id @default(cuid())
+  pollingStationId String
+  title            String
+  description      String?
+  incidentType     IncidentType
+  severity         IncidentSeverity
+  latitude         Float?
+  longitude        Float?
+  isResolved       Boolean          @default(false)
+  resolvedAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relationships
+  pollingStation PollingStation  @relation(fields: [pollingStationId], references: [id], onDelete: Cascade)
+  reporter       User            @relation(fields: [reporterId], references: [id])
+  reporterId     String
+  media          IncidentMedia[]
+
+  @@map("incidents")
+}
+
+enum IncidentType {
+  VIOLENCE
+  VOTER_INTIMIDATION
+  EQUIPMENT_FAILURE
+  IRREGULARITY
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model IncidentMedia {
+  id         String   @id @default(cuid())
+  incidentId String
+  fileName   String
+  filePath   String
+  fileType   String
+  fileSize   Int
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("incident_media")
+}
+
+// Audit Logging
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+// JWT Refresh Tokens
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
