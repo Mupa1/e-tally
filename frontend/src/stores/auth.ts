@@ -56,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
         toast.success('Login successful!');
         return { success: true };
       } else {
-        throw new Error(response.error?.message || 'Login failed');
+        throw new Error('Login failed');
       }
     } catch (err: any) {
       error.value = err.message || 'Login failed';

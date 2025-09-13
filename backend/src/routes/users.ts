@@ -34,12 +34,54 @@ router.get(
       const where: any = {};
 
       if (search) {
-        where.OR = [
-          { firstName: { contains: search } },
-          { lastName: { contains: search } },
-          { email: { contains: search } },
-          { username: { contains: search } },
-        ];
+        // Split search term by spaces to handle full names
+        const searchTerms = search.trim().split(/\s+/);
+
+        if (searchTerms.length === 1) {
+          // Single term search - search in individual fields
+          where.OR = [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { username: { contains: search, mode: 'insensitive' } },
+          ];
+        } else {
+          // Multiple terms search - search for combinations
+          const searchConditions = [];
+
+          // Add individual field searches
+          searchTerms.forEach((term: string) => {
+            searchConditions.push(
+              { firstName: { contains: term, mode: 'insensitive' } },
+              { lastName: { contains: term, mode: 'insensitive' } },
+              { email: { contains: term, mode: 'insensitive' } },
+              { username: { contains: term, mode: 'insensitive' } }
+            );
+          });
+
+          // Add full name search (firstName + lastName combination)
+          if (searchTerms.length === 2) {
+            searchConditions.push({
+              AND: [
+                {
+                  firstName: { contains: searchTerms[0], mode: 'insensitive' },
+                },
+                { lastName: { contains: searchTerms[1], mode: 'insensitive' } },
+              ],
+            });
+            // Also try reverse order
+            searchConditions.push({
+              AND: [
+                {
+                  firstName: { contains: searchTerms[1], mode: 'insensitive' },
+                },
+                { lastName: { contains: searchTerms[0], mode: 'insensitive' } },
+              ],
+            });
+          }
+
+          where.OR = searchConditions;
+        }
       }
 
       if (role) {
@@ -50,8 +92,24 @@ router.get(
         where.isActive = isActive === 'true';
       }
 
-      // First, let's try a simple query to test
+      // Test basic query first
+      logger.info('Testing basic Prisma query...');
+      const testUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
+        take: 1,
+      });
+      logger.info('Basic query successful, found users:', testUsers.length);
+
+      // Get total count for pagination
+      const total = await prisma.user.count({ where });
+
+      // Get users with pagination and filtering
       const users = await prisma.user.findMany({
+        where,
         select: {
           id: true,
           email: true,
@@ -66,9 +124,9 @@ router.get(
           createdAt: true,
           updatedAt: true,
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        skip: skip || 0,
+        take: parseInt(limit as string) || 10,
+        orderBy: { createdAt: 'desc' },
       });
 
       res.json({
@@ -76,15 +134,21 @@ router.get(
         data: {
           users,
           pagination: {
-            total: users.length,
-            page: 1,
-            limit: users.length,
-            totalPages: 1,
+            total,
+            page: parseInt(page as string) || 1,
+            limit: parseInt(limit as string) || 10,
+            totalPages: Math.ceil(total / (parseInt(limit as string) || 10)),
           },
         },
       });
     } catch (error: any) {
       logger.error('Failed to fetch users:', error);
+      logger.error('Prisma error details:', {
+        message: error.message,
+        code: error.code,
+        meta: error.meta,
+        stack: error.stack,
+      });
       next(new AppError('Failed to fetch users', 500));
     }
   }

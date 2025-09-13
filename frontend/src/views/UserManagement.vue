@@ -756,9 +756,13 @@ const handleRoleFilter = () => {
 };
 
 const handleStatusFilter = () => {
-  const isActive =
-    selectedStatus.value === '' ? undefined : selectedStatus.value === 'true';
-  userManagementStore.filterByStatus(isActive);
+  if (selectedStatus.value === '') {
+    // Clear status filter by fetching all users
+    userManagementStore.fetchUsers({ page: 1 });
+  } else {
+    const isActive = selectedStatus.value === 'true';
+    userManagementStore.filterByStatus(isActive);
+  }
 };
 
 const clearFilters = async () => {
@@ -768,8 +772,8 @@ const clearFilters = async () => {
   await userManagementStore.clearFilters();
 };
 
-const changePage = (page: number) => {
-  userManagementStore.fetchUsers({ page });
+const changePage = (page: number | string) => {
+  userManagementStore.fetchUsers({ page: Number(page) });
 };
 
 const changePageSize = (limit: number) => {

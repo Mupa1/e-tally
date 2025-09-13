@@ -312,28 +312,28 @@ const validateForm = () => {
   Object.keys(errors).forEach((key) => delete errors[key]);
 
   // First name validation
-  if (!form.firstName.trim()) {
+  if (!form.firstName?.trim()) {
     newErrors.firstName = 'First name is required';
   } else if (form.firstName.trim().length < 2) {
     newErrors.firstName = 'First name must be at least 2 characters';
   }
 
   // Last name validation
-  if (!form.lastName.trim()) {
+  if (!form.lastName?.trim()) {
     newErrors.lastName = 'Last name is required';
   } else if (form.lastName.trim().length < 2) {
     newErrors.lastName = 'Last name must be at least 2 characters';
   }
 
   // Email validation
-  if (!form.email.trim()) {
+  if (!form.email?.trim()) {
     newErrors.email = 'Email is required';
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     newErrors.email = 'Please enter a valid email address';
   }
 
   // Username validation
-  if (!form.username.trim()) {
+  if (!form.username?.trim()) {
     newErrors.username = 'Username is required';
   } else if (!/^[a-zA-Z0-9_]{3,30}$/.test(form.username)) {
     newErrors.username =
@@ -369,10 +369,10 @@ const handleSubmit = async () => {
 
   try {
     const updateData: UpdateUserData = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim(),
-      username: form.username.trim(),
+      firstName: form.firstName?.trim(),
+      lastName: form.lastName?.trim(),
+      email: form.email?.trim(),
+      username: form.username?.trim(),
       phoneNumber: form.phoneNumber?.trim() || undefined,
       imei: form.imei?.trim() || undefined,
       role: form.role as UserRole,
