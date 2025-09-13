@@ -27,8 +27,9 @@ export const requireAdmin = requireRole([
 // Middleware to check if user is super admin only
 export const requireSuperAdmin = requireRole([UserRole.SUPER_ADMIN]);
 
-// Middleware to check if user can access user management (SUPER_ADMIN or CENTRAL_COMMAND_ADMIN)
+// Middleware to check if user can access user management (SUPER_ADMIN, CENTRAL_COMMAND_ADMIN, or CENTRAL_COMMAND_USER)
 export const requireUserManagement = requireRole([
   UserRole.SUPER_ADMIN,
   UserRole.CENTRAL_COMMAND_ADMIN,
+  UserRole.CENTRAL_COMMAND_USER,
 ]);

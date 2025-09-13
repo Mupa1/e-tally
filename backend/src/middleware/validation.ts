@@ -58,6 +58,9 @@ export const schemas = {
     limit: Joi.number().integer().min(1).max(100).default(10),
     sortBy: Joi.string().default('createdAt'),
     sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
+    search: Joi.string().optional(),
+    role: Joi.string().optional(),
+    isActive: Joi.string().valid('true', 'false').optional(),
   }),
 
   user: Joi.object({
@@ -125,6 +128,14 @@ export const schemas = {
       )
       .optional(),
     isActive: Joi.boolean().optional(),
+  }),
+
+  changePassword: Joi.object({
+    newPassword: Joi.string().min(8).required(),
+  }),
+
+  bulkOperation: Joi.object({
+    userIds: Joi.array().items(Joi.string()).min(1).required(),
   }),
 
   electionResult: Joi.object({
