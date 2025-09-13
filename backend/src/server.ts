@@ -15,6 +15,7 @@ import { connectDatabase } from './utils/database';
 // Import routes
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import countyRoutes from './routes/counties';
 
 // Load environment variables
 dotenv.config();
@@ -125,6 +126,7 @@ app.get('/error-test', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/counties', countyRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

@@ -16,46 +16,84 @@ import { AppError } from '../utils/AppError';
 
 const router = express.Router();
 
-// Get all counties
+// Get all counties with pagination, search, and filtering
 router.get(
   '/',
   authenticateToken,
   validateQuery(schemas.pagination),
   async (req, res, next) => {
     try {
-      const { page, limit, sortBy, sortOrder } = req.query as any;
+      const { page, limit, sortBy, sortOrder, search } = req.query as any;
       const skip = (page - 1) * limit;
 
-      const [counties, total] = await Promise.all([
-        prisma.county.findMany({
-          skip,
-          take: limit,
-          orderBy: { [sortBy]: sortOrder },
-          include: {
-            _count: {
-              select: {
-                constituencies: true,
-              },
+      // Build where clause for filtering
+      const where: any = {};
+
+      if (search) {
+        // Split search term by spaces to handle full names
+        const searchTerms = search.trim().split(/\s+/);
+
+        if (searchTerms.length === 1) {
+          // Single term search - search in individual fields
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { code: { contains: search, mode: 'insensitive' } },
+          ];
+        } else {
+          // Multiple terms search - search for combinations
+          const searchConditions: any[] = [];
+
+          // Add individual field searches
+          searchTerms.forEach((term: string) => {
+            searchConditions.push(
+              { name: { contains: term, mode: 'insensitive' } },
+              { code: { contains: term, mode: 'insensitive' } }
+            );
+          });
+
+          where.OR = searchConditions;
+        }
+      }
+
+      // Get total count for pagination
+      const total = await prisma.county.count({ where });
+
+      // Get counties with pagination and filtering
+      const counties = await prisma.county.findMany({
+        where,
+        include: {
+          _count: {
+            select: {
+              constituencies: true,
             },
           },
-        }),
-        prisma.county.count(),
-      ]);
+        },
+        skip: skip || 0,
+        take: parseInt(limit as string) || 10,
+        orderBy:
+          sortBy === 'name'
+            ? { name: sortOrder || 'asc' }
+            : sortBy === 'code'
+            ? { code: sortOrder || 'asc' }
+            : sortBy === 'updatedAt'
+            ? { updatedAt: sortOrder || 'desc' }
+            : { createdAt: sortOrder || 'desc' },
+      });
 
       res.json({
         success: true,
         data: {
           counties,
           pagination: {
-            page,
-            limit,
             total,
-            pages: Math.ceil(total / limit),
+            page: parseInt(page as string) || 1,
+            limit: parseInt(limit as string) || 10,
+            totalPages: Math.ceil(total / (parseInt(limit as string) || 10)),
           },
         },
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to fetch counties', 500));
     }
   }
 );
@@ -98,8 +136,8 @@ router.get(
         success: true,
         data: { county },
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to fetch county details', 500));
     }
   }
 );
@@ -108,7 +146,7 @@ router.get(
 router.post(
   '/',
   authenticateToken,
-  requireRole(['CENTRAL_COMMAND_ADMIN']),
+  requireRole(['CENTRAL_COMMAND_ADMIN', 'SUPER_ADMIN']),
   validateRequest(schemas.county),
   logUserAction('CREATE', 'County'),
   async (req, res, next) => {
@@ -133,8 +171,8 @@ router.post(
         message: 'County created successfully',
         data: { county },
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to create county', 500));
     }
   }
 );
@@ -143,7 +181,7 @@ router.post(
 router.put(
   '/:id',
   authenticateToken,
-  requireRole(['CENTRAL_COMMAND_ADMIN']),
+  requireRole(['CENTRAL_COMMAND_ADMIN', 'SUPER_ADMIN']),
   validateParams(schemas.id),
   validateRequest(schemas.countyUpdate),
   logUserAction('UPDATE', 'County'),
@@ -176,8 +214,8 @@ router.put(
         message: 'County updated successfully',
         data: { county },
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to update county', 500));
     }
   }
 );
@@ -186,7 +224,7 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  requireRole(['CENTRAL_COMMAND_ADMIN']),
+  requireRole(['CENTRAL_COMMAND_ADMIN', 'SUPER_ADMIN']),
   validateParams(schemas.id),
   logUserAction('DELETE', 'County'),
   async (req, res, next) => {
@@ -210,8 +248,8 @@ router.delete(
         success: true,
         message: 'County deleted successfully',
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to delete county', 500));
     }
   }
 );
@@ -220,7 +258,7 @@ router.delete(
 router.post(
   '/bulk-import',
   authenticateToken,
-  requireRole(['CENTRAL_COMMAND_ADMIN']),
+  requireRole(['CENTRAL_COMMAND_ADMIN', 'SUPER_ADMIN']),
   validateRequest(schemas.countiesBulk),
   logUserAction('BULK_IMPORT', 'County'),
   async (req, res, next) => {
@@ -268,8 +306,8 @@ router.post(
         message: `${createdCounties.count} counties imported successfully`,
         data: { count: createdCounties.count },
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      next(new AppError('Failed to import counties', 500));
     }
   }
 );
