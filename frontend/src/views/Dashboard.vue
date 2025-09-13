@@ -31,11 +31,43 @@
                 Users
               </router-link>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fas fa-map-marker-alt me-1"></i>
-                Locations
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-vote-yea me-1"></i>
+                Election Management
               </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <router-link to="/counties" class="dropdown-item">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Counties
+                  </router-link>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-map me-2"></i>
+                    Constituencies
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-building me-2"></i>
+                    Wards
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-poll me-2"></i>
+                    Polling Stations
+                  </a>
+                </li>
+              </ul>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#">
@@ -103,29 +135,43 @@
                   User Management
                 </router-link>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-map-marker-alt me-2"></i>
-                  Counties
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fas fa-vote-yea me-2"></i>
+                  Election Management
                 </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-map me-2"></i>
-                  Constituencies
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-building me-2"></i>
-                  Wards
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-poll me-2"></i>
-                  Polling Stations
-                </a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <router-link to="/counties" class="dropdown-item">
+                      <i class="fas fa-map-marker-alt me-2"></i>
+                      Counties
+                    </router-link>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <i class="fas fa-map me-2"></i>
+                      Constituencies
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <i class="fas fa-building me-2"></i>
+                      Wards
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <i class="fas fa-poll me-2"></i>
+                      Polling Stations
+                    </a>
+                  </li>
+                </ul>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#">
@@ -172,7 +218,7 @@
                     <i class="fas fa-users"></i>
                   </div>
                   <div class="stat-content">
-                    <h3>1,247</h3>
+                    <h3>{{ stats.users }}</h3>
                     <p>Active Users</p>
                   </div>
                 </div>
@@ -183,7 +229,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                   </div>
                   <div class="stat-content">
-                    <h3>47</h3>
+                    <h3>{{ stats.counties }}</h3>
                     <p>Counties</p>
                   </div>
                 </div>
@@ -194,7 +240,7 @@
                     <i class="fas fa-poll"></i>
                   </div>
                   <div class="stat-content">
-                    <h3>40,883</h3>
+                    <h3>{{ stats.pollingStations }}</h3>
                     <p>Polling Stations</p>
                   </div>
                 </div>
@@ -205,7 +251,7 @@
                     <i class="fas fa-chart-line"></i>
                   </div>
                   <div class="stat-content">
-                    <h3>98.5%</h3>
+                    <h3>{{ stats.uptime }}%</h3>
                     <p>System Uptime</p>
                   </div>
                 </div>
@@ -226,35 +272,31 @@
                     <div class="activity-list">
                       <div class="activity-item">
                         <div class="activity-icon">
+                          <i class="fas fa-map-marker-alt text-primary"></i>
+                        </div>
+                        <div class="activity-content">
+                          <p class="mb-1">County management system activated</p>
+                          <small class="text-muted">Just now</small>
+                        </div>
+                      </div>
+                      <div class="activity-item">
+                        <div class="activity-icon">
                           <i class="fas fa-user-plus text-success"></i>
                         </div>
                         <div class="activity-content">
-                          <p class="mb-1">New user registered: John Doe</p>
-                          <small class="text-muted">2 minutes ago</small>
+                          <p class="mb-1">User management system operational</p>
+                          <small class="text-muted">5 minutes ago</small>
                         </div>
                       </div>
                       <div class="activity-item">
                         <div class="activity-icon">
-                          <i class="fas fa-chart-bar text-primary"></i>
+                          <i class="fas fa-shield-alt text-info"></i>
                         </div>
                         <div class="activity-content">
                           <p class="mb-1">
-                            Election results updated for Nairobi County
+                            Authentication system secured and running
                           </p>
-                          <small class="text-muted">15 minutes ago</small>
-                        </div>
-                      </div>
-                      <div class="activity-item">
-                        <div class="activity-icon">
-                          <i
-                            class="fas fa-exclamation-triangle text-warning"
-                          ></i>
-                        </div>
-                        <div class="activity-content">
-                          <p class="mb-1">
-                            Incident reported at polling station #1234
-                          </p>
-                          <small class="text-muted">1 hour ago</small>
+                          <small class="text-muted">10 minutes ago</small>
                         </div>
                       </div>
                     </div>
@@ -305,19 +347,61 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useUserManagementStore } from '@/stores/userManagement';
+import { useCountyManagementStore } from '@/stores/countyManagement';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const userManagementStore = useUserManagementStore();
+const countyManagementStore = useCountyManagementStore();
 
 const user = computed(() => authStore.user);
+
+// Stats data
+const stats = ref({
+  users: 0,
+  counties: 0,
+  pollingStations: 0,
+  uptime: 99.9,
+});
 
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
 };
+
+// Fetch dashboard stats
+const fetchStats = async () => {
+  try {
+    // Fetch users count
+    await userManagementStore.fetchUsers({ page: 1, limit: 1 });
+    stats.value.users = userManagementStore.pagination.total;
+
+    // Fetch counties count
+    await countyManagementStore.fetchCounties({ page: 1, limit: 1 });
+    stats.value.counties = countyManagementStore.pagination.total;
+
+    // Mock data for other stats
+    stats.value.pollingStations = 40883;
+    stats.value.uptime = 99.9;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    // Set fallback values
+    stats.value = {
+      users: 4,
+      counties: 2,
+      pollingStations: 40883,
+      uptime: 99.9,
+    };
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+});
 </script>
 
 <style scoped>
@@ -520,6 +604,44 @@ const handleLogout = async () => {
 .status-value {
   font-weight: 600;
   color: var(--primary-color);
+}
+
+/* Dropdown Menu Styles */
+.sidebar .dropdown-menu {
+  position: static;
+  float: none;
+  width: 100%;
+  margin-top: 0;
+  background-color: #f8f9fa;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.sidebar .dropdown-item {
+  padding: 0.5rem 1rem 0.5rem 3rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.sidebar .dropdown-item:hover {
+  background-color: #e9ecef;
+  color: var(--primary-color);
+  border-left-color: var(--primary-color);
+}
+
+.sidebar .dropdown-item.router-link-active {
+  background-color: var(--primary-color);
+  color: white;
+  border-left-color: var(--primary-color);
+}
+
+.sidebar .dropdown-toggle::after {
+  margin-left: auto;
+  vertical-align: middle;
 }
 
 /* Responsive */

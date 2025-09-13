@@ -264,7 +264,19 @@ const features = ref([
     icon: 'fas fa-shield-alt',
     title: 'Secure Authentication',
     description:
-      'Multi-factor authentication with biometric support and role-based access control.',
+      'JWT-based authentication with role-based access control and secure session management.',
+  },
+  {
+    icon: 'fas fa-users',
+    title: 'User Management',
+    description:
+      'Complete user management system with role assignments, search, and pagination.',
+  },
+  {
+    icon: 'fas fa-map-marker-alt',
+    title: 'County Management',
+    description:
+      'Comprehensive county management with CRUD operations, search, and real-time updates.',
   },
   {
     icon: 'fas fa-chart-line',
@@ -273,28 +285,16 @@ const features = ref([
       'Live election results and incident reporting with instant notifications.',
   },
   {
-    icon: 'fas fa-mobile-alt',
-    title: 'Mobile Access',
-    description:
-      'Native mobile apps for Android and iOS with offline capability.',
-  },
-  {
     icon: 'fas fa-database',
     title: 'Data Integrity',
     description:
       'Immutable audit logs and encrypted data storage with backup systems.',
   },
   {
-    icon: 'fas fa-users',
-    title: 'User Management',
+    icon: 'fas fa-mobile-alt',
+    title: 'Mobile Access',
     description:
-      'Comprehensive user management with hierarchical role assignments.',
-  },
-  {
-    icon: 'fas fa-globe',
-    title: 'Geographic Coverage',
-    description:
-      'Complete coverage of all counties, constituencies, and polling stations.',
+      'Native mobile apps for Android and iOS with offline capability.',
   },
 ]);
 

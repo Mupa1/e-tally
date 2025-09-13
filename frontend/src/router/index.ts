@@ -6,6 +6,7 @@ const Login = () => import('@/views/Login.vue');
 const Home = () => import('@/views/Home.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 const UserManagement = () => import('@/views/UserManagement.vue');
+const CountyManagement = () => import('@/views/CountyManagement.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -34,6 +35,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'UserManagement',
     component: UserManagement,
     meta: { requiresAuth: true, title: 'User Management - e-Tally' },
+  },
+  {
+    path: '/counties',
+    name: 'CountyManagement',
+    component: CountyManagement,
+    meta: { requiresAuth: true, title: 'County Management - e-Tally' },
   },
   {
     path: '/:pathMatch(.*)*',
