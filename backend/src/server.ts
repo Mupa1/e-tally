@@ -16,6 +16,8 @@ import { connectDatabase } from './utils/database';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import countyRoutes from './routes/counties';
+import pollingStationRoutes from './routes/pollingStations';
+import bulkUploadRoutes from './routes/bulkUpload';
 
 // Load environment variables
 dotenv.config();
@@ -127,6 +129,8 @@ app.get('/error-test', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/counties', countyRoutes);
+app.use('/api/polling-stations', pollingStationRoutes);
+app.use('/api/bulk-upload', bulkUploadRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
