@@ -1,0 +1,555 @@
+/* ========================================
+   VIEWS STYLES - Consolidated CSS
+   ======================================== */
+
+/* ========================================
+   DASHBOARD STYLES
+   ======================================== */
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.dashboard-page .main-content {
+  padding: 0;
+}
+
+.dashboard-page .content-wrapper {
+  padding: 2rem;
+}
+
+.dashboard-page .stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.dashboard-page .stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.dashboard-page .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1.5rem;
+}
+
+.dashboard-page .stat-card:nth-child(1) .stat-icon {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: var(--secondary-color);
+}
+
+.dashboard-page .stat-card:nth-child(2) .stat-icon {
+  background-color: rgba(39, 174, 96, 0.1);
+  color: var(--success-color);
+}
+
+.dashboard-page .stat-card:nth-child(3) .stat-icon {
+  background-color: rgba(241, 196, 15, 0.1);
+  color: var(--warning-color);
+}
+
+.dashboard-page .stat-card:nth-child(4) .stat-icon {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--danger-color);
+}
+
+.dashboard-page .stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--primary-color);
+}
+
+.dashboard-page .stat-content p {
+  color: #6c757d;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.dashboard-page .activity-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dashboard-page .activity-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.dashboard-page .activity-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-page .activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1rem;
+}
+
+.dashboard-page .activity-content p {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.dashboard-page .status-list {
+  /* space-y: 1rem; */
+}
+
+.dashboard-page .status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.dashboard-page .status-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-page .status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+}
+
+.dashboard-page .status-online {
+  background-color: var(--success-color);
+}
+
+.dashboard-page .status-warning {
+  background-color: var(--warning-color);
+}
+
+.dashboard-page .status-offline {
+  background-color: var(--danger-color);
+}
+
+.dashboard-page .status-value {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* ========================================
+   CONSTITUENCY MANAGEMENT STYLES
+   ======================================== */
+.constituency-management-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.constituency-management-page .main-content {
+  padding: 0;
+}
+
+.constituency-management-page .content-wrapper {
+  padding: 2rem;
+}
+
+.constituency-management-page .action-bar {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.constituency-management-page .search-box .input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.constituency-management-page .search-box .form-control {
+  border-left: none;
+}
+
+.constituency-management-page .search-box .form-control:focus {
+  box-shadow: none;
+  border-color: #ced4da;
+}
+
+.constituency-management-page .county-filter .form-select {
+  min-width: 150px;
+}
+
+.constituency-management-page .page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.constituency-management-page .page-size-selector .form-label {
+  font-weight: 500;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.constituency-management-page .page-size-selector .form-select {
+  min-width: 120px;
+}
+
+.constituency-management-page .sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.constituency-management-page .sortable:hover {
+  background-color: #f8f9fa;
+}
+
+.constituency-management-page .table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.constituency-management-page .btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+.constituency-management-page .btn-group-sm .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.constituency-management-page .modal.show {
+  display: block !important;
+}
+
+.constituency-management-page .modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* ========================================
+   COUNTY MANAGEMENT STYLES
+   ======================================== */
+.county-management-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.county-management-page .main-content {
+  padding: 0;
+}
+
+.county-management-page .content-wrapper {
+  padding: 2rem;
+}
+
+.county-management-page .action-bar {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.county-management-page .search-box .input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.county-management-page .search-box .form-control {
+  border-left: none;
+}
+
+.county-management-page .search-box .form-control:focus {
+  box-shadow: none;
+  border-color: #ced4da;
+}
+
+.county-management-page .page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.county-management-page .page-size-selector .form-label {
+  font-weight: 500;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.county-management-page .page-size-selector .form-select {
+  min-width: 120px;
+}
+
+.county-management-page .sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.county-management-page .sortable:hover {
+  background-color: #f8f9fa;
+}
+
+.county-management-page .table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.county-management-page .btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+.county-management-page .btn-group-sm .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.county-management-page .modal.show {
+  display: block !important;
+}
+
+.county-management-page .modal-backdrop.show {
+  opacity: 0.5;
+}
+
+/* ========================================
+   UPLOAD ERRORS STYLES
+   ======================================== */
+.upload-errors-page .table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.upload-errors-page .table td {
+  vertical-align: middle;
+}
+
+.upload-errors-page .badge {
+  font-size: 0.75em;
+}
+
+.upload-errors-page .text-wrap {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.upload-errors-page .card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.upload-errors-page .pagination .page-link {
+  color: #0d6efd;
+  border-color: #dee2e6;
+}
+
+.upload-errors-page .pagination .page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.upload-errors-page .pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #fff;
+  border-color: #dee2e6;
+}
+
+/* ========================================
+   USER MANAGEMENT STYLES
+   ======================================== */
+.user-management-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.user-management-page .main-content {
+  padding: 0;
+}
+
+.user-management-page .content-wrapper {
+  padding: 2rem;
+}
+
+.user-management-page .stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.user-management-page .stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.user-management-page .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1.5rem;
+}
+
+.user-management-page .stat-card:nth-child(1) .stat-icon {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: var(--secondary-color);
+}
+
+.user-management-page .stat-card:nth-child(2) .stat-icon {
+  background-color: rgba(39, 174, 96, 0.1);
+  color: var(--success-color);
+}
+
+.user-management-page .stat-card:nth-child(3) .stat-icon {
+  background-color: rgba(241, 196, 15, 0.1);
+  color: var(--warning-color);
+}
+
+.user-management-page .stat-card:nth-child(4) .stat-icon {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--danger-color);
+}
+
+.user-management-page .stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--primary-color);
+}
+
+.user-management-page .stat-content p {
+  color: #6c757d;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.user-management-page .avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.user-management-page .table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-management-page .bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+  /* Dashboard responsive */
+  .dashboard-page .content-wrapper {
+    padding: 1rem;
+  }
+
+  .dashboard-page .stat-card {
+    margin-bottom: 1rem;
+  }
+
+  /* Constituency Management responsive */
+  .constituency-management-page .sidebar {
+    min-height: auto;
+  }
+
+  .constituency-management-page .content-wrapper {
+    padding: 1rem;
+  }
+
+  .constituency-management-page .action-bar {
+    padding: 1rem;
+  }
+
+  .constituency-management-page .action-bar .row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .constituency-management-page .action-bar .col-md-3 {
+    width: 100%;
+    text-align: left !important;
+  }
+
+  .constituency-management-page .page-size-selector {
+    justify-content: flex-start;
+  }
+
+  .constituency-management-page .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  /* County Management responsive */
+  .county-management-page .sidebar {
+    min-height: auto;
+  }
+
+  .county-management-page .content-wrapper {
+    padding: 1rem;
+  }
+
+  .county-management-page .action-bar {
+    padding: 1rem;
+  }
+
+  .county-management-page .action-bar .row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .county-management-page .action-bar .col-md-4 {
+    width: 100%;
+    text-align: left !important;
+  }
+
+  .county-management-page .page-size-selector {
+    justify-content: flex-start;
+  }
+
+  .county-management-page .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  /* User Management responsive */
+  .user-management-page .content-wrapper {
+    padding: 1rem;
+  }
+
+  .user-management-page .stat-card {
+    margin-bottom: 1rem;
+  }
+
+  .user-management-page .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .user-management-page .table-responsive {
+    font-size: 0.875rem;
+  }
+}

@@ -182,6 +182,12 @@ export const useCountyManagementStore = defineStore('countyManagement', () => {
     fetchCounties({ page });
   };
 
+  const changePageSize = (limit: number) => {
+    pagination.value.limit = limit;
+    pagination.value.page = 1; // Reset to first page when changing page size
+    fetchCounties({ page: 1, limit });
+  };
+
   const clearError = () => {
     error.value = null;
   };
@@ -227,6 +233,7 @@ export const useCountyManagementStore = defineStore('countyManagement', () => {
     setSearchQuery,
     setSorting,
     changePage,
+    changePageSize,
     clearError,
     resetState,
   };

@@ -4,8 +4,8 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
-# Install dependencies for native modules including OpenSSL
-RUN apk add --no-cache python3 make g++ openssl openssl-dev
+# Install dependencies for native modules
+RUN apk add --no-cache make g++ openssl openssl-dev
 
 # Copy package files
 COPY package*.json ./

@@ -68,9 +68,15 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware - increased limits for large PDF uploads
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+
+// Set timeout for long-running operations (30 minutes)
+app.use((req, res, next) => {
+  res.setTimeout(1800000); // 30 minutes in milliseconds
+  next();
+});
 
 // Compression middleware
 app.use(compression());

@@ -7,7 +7,10 @@ const Home = () => import('@/views/Home.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 const UserManagement = () => import('@/views/UserManagement.vue');
 const CountyManagement = () => import('@/views/CountyManagement.vue');
+const ConstituencyManagement = () =>
+  import('@/views/ConstituencyManagement.vue');
 const ElectionManagement = () => import('@/views/ElectionManagement.vue');
+const UploadErrors = () => import('@/views/UploadErrors.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -44,10 +47,22 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'County Management - e-Tally' },
   },
   {
+    path: '/constituencies',
+    name: 'ConstituencyManagement',
+    component: ConstituencyManagement,
+    meta: { requiresAuth: true, title: 'Constituency Management - e-Tally' },
+  },
+  {
     path: '/election-management',
     name: 'ElectionManagement',
     component: ElectionManagement,
     meta: { requiresAuth: true, title: 'Election Management - e-Tally' },
+  },
+  {
+    path: '/upload-errors',
+    name: 'UploadErrors',
+    component: UploadErrors,
+    meta: { requiresAuth: true, title: 'Upload Errors - e-Tally' },
   },
   {
     path: '/:pathMatch(.*)*',

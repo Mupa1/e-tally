@@ -1,159 +1,13 @@
 <template>
   <div class="county-management-page">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <router-link to="/dashboard" class="navbar-brand">
-          <i class="fas fa-vote-yea me-2"></i>
-          e-Tally Dashboard
-        </router-link>
-
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <router-link to="/dashboard" class="nav-link">
-                <i class="fas fa-tachometer-alt me-1"></i>
-                Dashboard
-              </router-link>
-            </li>
-            <li class="nav-item">
-              <router-link to="/users" class="nav-link">
-                <i class="fas fa-users me-1"></i>
-                Users
-              </router-link>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="#">
-                <i class="fas fa-map-marker-alt me-1"></i>
-                Counties
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fas fa-chart-bar me-1"></i>
-                Results
-              </a>
-            </li>
-          </ul>
-
-          <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                <i class="fas fa-user-circle me-1"></i>
-                {{ user?.firstName }} {{ user?.lastName }}
-              </a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="fas fa-user me-2"></i>
-                    Profile
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="fas fa-cog me-2"></i>
-                    Settings
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <a class="dropdown-item" href="#" @click="handleLogout">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    Logout
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <!-- Top Navigation Bar -->
+    <TopBar />
 
     <!-- Main Content -->
     <div class="container-fluid">
       <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
-          <div class="sidebar-content">
-            <h6 class="sidebar-title">Navigation</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <router-link to="/dashboard" class="nav-link">
-                  <i class="fas fa-tachometer-alt me-2"></i>
-                  Dashboard
-                </router-link>
-              </li>
-              <li class="nav-item">
-                <router-link to="/users" class="nav-link">
-                  <i class="fas fa-users me-2"></i>
-                  User Management
-                </router-link>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="#">
-                  <i class="fas fa-map-marker-alt me-2"></i>
-                  Counties
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-map me-2"></i>
-                  Constituencies
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-building me-2"></i>
-                  Wards
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-poll me-2"></i>
-                  Polling Stations
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-user-tie me-2"></i>
-                  Candidates
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-chart-line me-2"></i>
-                  Election Results
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-exclamation-triangle me-2"></i>
-                  Incidents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-clipboard-list me-2"></i>
-                  Audit Logs
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <AppSidebar />
 
         <!-- Main Content Area -->
         <div class="col-md-9 col-lg-10 main-content">
@@ -163,7 +17,6 @@
               <h1 class="page-title">County Management</h1>
               <p class="page-subtitle">Manage counties and their information</p>
             </div>
-
             <!-- Error Alert -->
             <div
               v-if="countyManagementStore.error"
@@ -182,7 +35,7 @@
             <!-- Action Bar -->
             <div class="action-bar">
               <div class="row align-items-center">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="search-box">
                     <div class="input-group">
                       <span class="input-group-text">
@@ -198,7 +51,22 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-md-6 text-end">
+                <div class="col-md-4">
+                  <div class="page-size-selector">
+                    <label class="form-label me-2 mb-0">Show:</label>
+                    <select
+                      v-model="pageSize"
+                      @change="handlePageSizeChange"
+                      class="form-select form-select-sm"
+                      style="width: auto; display: inline-block"
+                    >
+                      <option value="10">10 per page</option>
+                      <option value="20">20 per page</option>
+                      <option value="50">50 per page</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-4 text-end">
                   <button
                     class="btn btn-primary"
                     @click="showCreateModal = true"
@@ -310,7 +178,7 @@
                         </td>
                         <td>
                           <span class="badge bg-info">{{
-                            county._count?.constituencies || 0
+                            county._count?.constituencies ?? 0
                           }}</span>
                         </td>
                         <td>
@@ -337,7 +205,14 @@
                             <button
                               class="btn btn-outline-danger"
                               @click="deleteCounty(county)"
-                              title="Delete County"
+                              :title="
+                                (county._count?.constituencies ?? 0) > 0
+                                  ? 'Cannot delete - has constituencies'
+                                  : 'Delete County'
+                              "
+                              :disabled="
+                                (county._count?.constituencies ?? 0) > 0
+                              "
                             >
                               <i class="fas fa-trash"></i>
                             </button>
@@ -647,12 +522,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useCountyManagementStore } from '@/stores/countyManagement';
 import type { County } from '@/services/countyService';
+import AppSidebar from '@/components/AppSidebar.vue';
+import TopBar from '@/components/TopBar.vue';
+import '@/assets/css/views.css';
 
-const router = useRouter();
 const authStore = useAuthStore();
 const countyManagementStore = useCountyManagementStore();
 
@@ -664,6 +540,7 @@ const selectedCounty = ref<County | null>(null);
 const searchQuery = ref('');
 const sortBy = ref('createdAt');
 const sortOrder = ref<'asc' | 'desc'>('desc');
+const pageSize = ref(10);
 
 // Forms
 const createForm = ref({
@@ -695,11 +572,6 @@ const visiblePages = computed(() => {
 });
 
 // Methods
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push('/login');
-};
-
 const handleSearch = () => {
   countyManagementStore.setSearchQuery(searchQuery.value);
   countyManagementStore.fetchCounties({ page: 1 });
@@ -721,6 +593,10 @@ const changePage = (page: number) => {
   countyManagementStore.changePage(page);
 };
 
+const handlePageSizeChange = () => {
+  countyManagementStore.changePageSize(Number(pageSize.value));
+};
+
 const viewCounty = (county: County) => {
   selectedCounty.value = county;
   showViewModal.value = true;
@@ -737,7 +613,14 @@ const editCounty = (county: County) => {
 };
 
 const deleteCounty = async (county: County) => {
-  if (confirm(`Are you sure you want to delete ${county.name}?`)) {
+  const constituencyCount = county._count?.constituencies ?? 0;
+  let confirmMessage = `Are you sure you want to delete ${county.name}?`;
+
+  if (constituencyCount > 0) {
+    confirmMessage += `\n\n⚠️ This county has ${constituencyCount} constituency(ies) associated with it. Deleting this county will not be possible until all constituencies are removed first.`;
+  }
+
+  if (confirm(confirmMessage)) {
     try {
       await countyManagementStore.deleteCounty(county.id);
     } catch (error) {
@@ -795,142 +678,3 @@ watch(searchQuery, () => {
   return () => clearTimeout(timeoutId);
 });
 </script>
-
-<style scoped>
-.county-management-page {
-  min-height: 100vh;
-  background-color: #f8f9fa;
-}
-
-.sidebar {
-  background-color: white;
-  min-height: calc(100vh - 76px);
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  padding: 0;
-}
-
-.sidebar-content {
-  padding: 2rem 1rem;
-}
-
-.sidebar-title {
-  color: #6c757d;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  margin-bottom: 1rem;
-  letter-spacing: 0.5px;
-}
-
-.sidebar .nav-link {
-  color: #495057;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.25rem;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.sidebar .nav-link:hover {
-  background-color: #e9ecef;
-  color: var(--primary-color);
-}
-
-.sidebar .nav-link.active {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.main-content {
-  padding: 0;
-}
-
-.content-wrapper {
-  padding: 2rem;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  color: #6c757d;
-  font-size: 1.1rem;
-  margin-bottom: 0;
-}
-
-.action-bar {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
-}
-
-.search-box .input-group-text {
-  background-color: #f8f9fa;
-  border-right: none;
-}
-
-.search-box .form-control {
-  border-left: none;
-}
-
-.search-box .form-control:focus {
-  box-shadow: none;
-  border-color: #ced4da;
-}
-
-.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.sortable:hover {
-  background-color: #f8f9fa;
-}
-
-.table th {
-  border-top: none;
-  font-weight: 600;
-  color: #495057;
-}
-
-.btn-group-sm .btn {
-  padding: 0.25rem 0.5rem;
-}
-
-.modal.show {
-  display: block !important;
-}
-
-.modal-backdrop.show {
-  opacity: 0.5;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar {
-    min-height: auto;
-  }
-
-  .content-wrapper {
-    padding: 1rem;
-  }
-
-  .action-bar {
-    padding: 1rem;
-  }
-
-  .table-responsive {
-    font-size: 0.875rem;
-  }
-}
-</style>

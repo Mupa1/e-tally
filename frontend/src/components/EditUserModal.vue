@@ -405,33 +405,5 @@ const formatDate = (dateString: string) => {
 </script>
 
 <style scoped>
-.modal {
-  z-index: 1055;
-}
-
-.modal-dialog {
-  max-width: 600px;
-}
-
-.form-text {
-  font-size: 0.875rem;
-  color: #6c757d;
-}
-
-.invalid-feedback {
-  display: block;
-}
-
-.spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
-}
-
-.form-check-input:disabled {
-  opacity: 0.5;
-}
-
-.form-select:disabled {
-  opacity: 0.5;
-}
+/* Edit user modal styles are now globally available via main.ts */
 </style>

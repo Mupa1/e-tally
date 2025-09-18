@@ -1,193 +1,45 @@
 <template>
   <div class="user-management-page">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <router-link to="/dashboard" class="navbar-brand">
-          <i class="fas fa-vote-yea me-2"></i>
-          e-Tally Dashboard
-        </router-link>
-
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <router-link to="/dashboard" class="nav-link">
-                <i class="fas fa-tachometer-alt me-1"></i>
-                Dashboard
-              </router-link>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="#">
-                <i class="fas fa-users me-1"></i>
-                Users
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fas fa-map-marker-alt me-1"></i>
-                Locations
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fas fa-chart-bar me-1"></i>
-                Results
-              </a>
-            </li>
-          </ul>
-
-          <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                <i class="fas fa-user-circle me-1"></i>
-                {{ user?.firstName }} {{ user?.lastName }}
-              </a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="fas fa-user me-2"></i>
-                    Profile
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">
-                    <i class="fas fa-cog me-2"></i>
-                    Settings
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <a class="dropdown-item" href="#" @click="handleLogout">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    Logout
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <!-- Top Navigation Bar -->
+    <TopBar />
 
     <!-- Main Content -->
     <div class="container-fluid">
       <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
-          <div class="sidebar-content">
-            <h6 class="sidebar-title">Navigation</h6>
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <router-link to="/dashboard" class="nav-link">
-                  <i class="fas fa-tachometer-alt me-2"></i>
-                  Dashboard
-                </router-link>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="#">
-                  <i class="fas fa-users me-2"></i>
-                  User Management
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-map-marker-alt me-2"></i>
-                  Counties
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-map me-2"></i>
-                  Constituencies
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-building me-2"></i>
-                  Wards
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-poll me-2"></i>
-                  Polling Stations
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-user-tie me-2"></i>
-                  Candidates
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-chart-line me-2"></i>
-                  Election Results
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-exclamation-triangle me-2"></i>
-                  Incidents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">
-                  <i class="fas fa-clipboard-list me-2"></i>
-                  Audit Logs
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <AppSidebar />
 
         <!-- Main Content Area -->
         <div class="col-md-9 col-lg-10 main-content">
           <div class="content-wrapper">
             <!-- Page Header -->
             <div class="page-header">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <h1 class="page-title">User Management</h1>
-                  <p class="page-subtitle">
-                    Manage system users and permissions
-                  </p>
-                </div>
-                <div class="header-actions">
-                  <button
-                    class="btn btn-outline-primary me-2"
-                    @click="showCreateModal = true"
-                    :disabled="!canCreateUser"
-                  >
-                    <i class="fas fa-plus me-1"></i>
-                    Add User
-                  </button>
-                  <button
-                    class="btn btn-outline-secondary"
-                    @click="refreshUsers"
-                    :disabled="loading"
-                  >
-                    <i
-                      class="fas fa-sync-alt me-1"
-                      :class="{ 'fa-spin': loading }"
-                    ></i>
-                    Refresh
-                  </button>
-                </div>
+              <h1 class="page-title">User Management</h1>
+              <p class="page-subtitle">Manage system users and permissions</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-end mb-4">
+              <div class="header-actions">
+                <button
+                  class="btn btn-outline-primary me-2"
+                  @click="showCreateModal = true"
+                  :disabled="!canCreateUser"
+                >
+                  <i class="fas fa-plus me-1"></i>
+                  Add User
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
+                  @click="refreshUsers"
+                  :disabled="loading"
+                >
+                  <i
+                    class="fas fa-sync-alt me-1"
+                    :class="{ 'fa-spin': loading }"
+                  ></i>
+                  Refresh
+                </button>
               </div>
             </div>
 
@@ -613,7 +465,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useUserManagementStore } from '@/stores/userManagement';
 import type { User, UserRole } from '@/services/userService';
@@ -621,8 +472,10 @@ import CreateUserModal from '@/components/CreateUserModal.vue';
 import EditUserModal from '@/components/EditUserModal.vue';
 import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
 import ViewUserModal from '@/components/ViewUserModal.vue';
+import AppSidebar from '@/components/AppSidebar.vue';
+import TopBar from '@/components/TopBar.vue';
+import '@/assets/css/views.css';
 
-const router = useRouter();
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
 
@@ -737,11 +590,6 @@ const visiblePages = computed(() => {
 });
 
 // Methods
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push('/login');
-};
-
 const refreshUsers = async () => {
   await userManagementStore.fetchUsers();
   await userManagementStore.fetchStats();
@@ -889,173 +737,3 @@ onMounted(async () => {
   await refreshUsers();
 });
 </script>
-
-<style scoped>
-.user-management-page {
-  min-height: 100vh;
-  background-color: #f8f9fa;
-}
-
-.sidebar {
-  background-color: white;
-  min-height: calc(100vh - 76px);
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  padding: 0;
-}
-
-.sidebar-content {
-  padding: 2rem 1rem;
-}
-
-.sidebar-title {
-  color: #6c757d;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  margin-bottom: 1rem;
-  letter-spacing: 0.5px;
-}
-
-.sidebar .nav-link {
-  color: #495057;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.25rem;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.sidebar .nav-link:hover {
-  background-color: #e9ecef;
-  color: var(--primary-color);
-}
-
-.sidebar .nav-link.active {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.main-content {
-  padding: 0;
-}
-
-.content-wrapper {
-  padding: 2rem;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  color: #6c757d;
-  font-size: 1.1rem;
-  margin-bottom: 0;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
-  font-size: 1.5rem;
-}
-
-.stat-card:nth-child(1) .stat-icon {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: var(--secondary-color);
-}
-
-.stat-card:nth-child(2) .stat-icon {
-  background-color: rgba(39, 174, 96, 0.1);
-  color: var(--success-color);
-}
-
-.stat-card:nth-child(3) .stat-icon {
-  background-color: rgba(241, 196, 15, 0.1);
-  color: var(--warning-color);
-}
-
-.stat-card:nth-child(4) .stat-icon {
-  background-color: rgba(231, 76, 60, 0.1);
-  color: var(--danger-color);
-}
-
-.stat-content h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--primary-color);
-}
-
-.stat-content p {
-  color: #6c757d;
-  margin-bottom: 0;
-  font-weight: 500;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-}
-
-.table-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.bulk-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar {
-    min-height: auto;
-  }
-
-  .content-wrapper {
-    padding: 1rem;
-  }
-
-  .stat-card {
-    margin-bottom: 1rem;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .table-responsive {
-    font-size: 0.875rem;
-  }
-}
-</style>

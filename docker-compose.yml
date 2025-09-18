@@ -54,7 +54,7 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       PORT: 3000
       ENCRYPTION_KEY: your-32-character-encryption-key-here
-      MAX_FILE_SIZE: 10485760
+      MAX_FILE_SIZE: 104857600
       UPLOAD_PATH: ./uploads
       RATE_LIMIT_WINDOW_MS: 900000
       RATE_LIMIT_MAX_REQUESTS: 100
@@ -62,7 +62,12 @@ services:
       LOG_FILE_PATH: ./logs/app.log
       CORS_ORIGIN: http://localhost:3001
       BCRYPT_ROUNDS: 12
-      SESSION_SECRET: your-session-secret-here
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/logs:/app/logs
@@ -128,7 +133,9 @@ services:
       - '443:443'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx-conf.d:/etc/nginx/conf.d
       - ./ssl:/etc/nginx/ssl
+    command: ['nginx', '-g', 'daemon off;']
     networks:
       - etally-network
     depends_on:

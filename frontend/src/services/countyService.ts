@@ -92,29 +92,53 @@ class CountyService {
   }
 
   async createCounty(data: CreateCountyData): Promise<CountyResponse> {
-    const response = await axios.post(`${API_BASE_URL}/counties`, data, {
-      headers: this.getAuthHeaders(),
-    });
-    return response.data;
+    try {
+      const response = await axios.post(`${API_BASE_URL}/counties`, data, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      // Extract error message from response
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 
   async updateCounty(
     id: string,
     data: UpdateCountyData
   ): Promise<CountyResponse> {
-    const response = await axios.put(`${API_BASE_URL}/counties/${id}`, data, {
-      headers: this.getAuthHeaders(),
-    });
-    return response.data;
+    try {
+      const response = await axios.put(`${API_BASE_URL}/counties/${id}`, data, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      // Extract error message from response
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 
   async deleteCounty(
     id: string
   ): Promise<{ success: boolean; message: string }> {
-    const response = await axios.delete(`${API_BASE_URL}/counties/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
-    return response.data;
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/counties/${id}`, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      // Extract error message from response
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 }
 
