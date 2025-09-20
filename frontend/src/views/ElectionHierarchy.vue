@@ -282,55 +282,6 @@
               Refresh Overview
             </button>
           </div>
-
-          <!-- Hierarchy Information -->
-          <div class="mt-6">
-            <div
-              class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4"
-            >
-              <h6 class="text-blue-800 font-semibold mb-3">
-                <i class="fas fa-info-circle mr-2"></i>
-                Election Hierarchy Structure
-              </h6>
-              <p class="text-blue-700 mb-3">
-                The election hierarchy follows a structured approach from the
-                highest administrative level down to individual polling
-                stations:
-              </p>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <div class="flex items-center text-blue-700">
-                    <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
-                    <span class="font-medium">Counties</span>
-                    <span class="ml-auto text-sm"
-                      >{{ stats.counties }} total</span
-                    >
-                  </div>
-                  <div class="flex items-center text-blue-700">
-                    <i class="fas fa-landmark mr-2 text-green-500"></i>
-                    <span class="font-medium">Constituencies</span>
-                    <span class="ml-auto text-sm"
-                      >{{ stats.constituencies }} total</span
-                    >
-                  </div>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center text-blue-700">
-                    <i class="fas fa-building mr-2 text-purple-500"></i>
-                    <span class="font-medium">Wards (CAW)</span>
-                    <span class="ml-auto text-sm">{{ stats.wards }} total</span>
-                  </div>
-                  <div class="flex items-center text-blue-700">
-                    <i class="fas fa-poll mr-2 text-orange-500"></i>
-                    <span class="font-medium">Polling Stations</span>
-                    <span class="ml-auto text-sm"
-                      >{{ stats.pollingStations }} total</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -347,7 +298,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useCountyManagementStore } from '@/stores/countyManagement';
-import BulkUploadModal from '@/components/pages/users/BulkUploadModal.vue';
+import BulkUploadModal from '@/components/pages/election-hirarchy/BulkUploadModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
 
 const authStore = useAuthStore();
@@ -413,9 +364,9 @@ const fetchStats = async () => {
 };
 
 const openBulkUpload = () => {
-  // Reset modal state when opening
+  // Open the bulk upload modal
   if (bulkUploadModalRef.value) {
-    bulkUploadModalRef.value.resetModal();
+    bulkUploadModalRef.value.openModal();
   }
 };
 
@@ -426,19 +377,33 @@ const handleUploadSuccess = (result: any) => {
 
   // Show success notification
   // You can add a toast notification here
-  alert(
-    `Upload completed successfully! Created ${result.data.pollingStations.created} polling stations.`
-  );
+  const message = result.data
+    ? `Upload completed successfully! Created ${
+        result.data.pollingStations?.created || 0
+      } polling stations, ${result.data.wards?.created || 0} wards, ${
+        result.data.constituencies?.created || 0
+      } constituencies, and ${result.data.counties?.created || 0} counties.`
+    : 'Upload completed successfully!';
+
+  alert(message);
 };
 
 const exportData = () => {
-  // TODO: Implement data export functionality
-  console.log('Export data clicked');
+  // TODO: Implement election hierarchy data export functionality
+  console.log('Export election hierarchy data clicked');
+  // This could export the entire election structure as CSV/Excel
+  alert(
+    'Export functionality will be implemented to download the complete election hierarchy data.'
+  );
 };
 
 const validateData = () => {
-  // TODO: Implement data validation functionality
-  console.log('Validate data clicked');
+  // TODO: Implement election hierarchy data validation functionality
+  console.log('Validate election hierarchy data clicked');
+  // This could validate the integrity of the election structure
+  alert(
+    'Validation functionality will be implemented to check the election hierarchy data integrity.'
+  );
 };
 
 // Lifecycle

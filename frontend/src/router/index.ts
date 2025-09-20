@@ -59,7 +59,7 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'Polling Station Management - e-Tally' },
   },
   {
-    path: '/election-hierarchy/overview',
+    path: '/election-overview',
     name: 'ElectionHierarchyOverview',
     component: ElectionHierarchy,
     meta: {
@@ -86,6 +86,11 @@ export function setupRouterGuards(router: any) {
   router.beforeEach((to: any, from: any, next: any) => {
     const authStore = useAuthStore();
 
+    // Debug logging
+    console.log('Navigating to:', to.path, 'Name:', to.name);
+    console.log('Requires auth:', to.meta.requiresAuth);
+    console.log('Is authenticated:', authStore.isAuthenticated);
+
     // Set page title
     if (to.meta.title) {
       document.title = to.meta.title;
@@ -93,6 +98,7 @@ export function setupRouterGuards(router: any) {
 
     // Check if route requires authentication
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+      console.log('Redirecting to login - not authenticated');
       next('/login');
       return;
     }

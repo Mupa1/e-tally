@@ -39,7 +39,7 @@ export function useNavigation() {
       children: [
         {
           name: 'Overview',
-          href: '/election-hierarchy/overview',
+          href: '/election-overview',
           icon: 'fas fa-chart-pie',
         },
         {
@@ -76,7 +76,7 @@ export function useNavigation() {
         (item.href === '/counties' && route.name === 'CountyManagement') ||
         (item.href === '/constituencies' &&
           route.name === 'ConstituencyManagement') ||
-        (item.href === '/election-hierarchy/overview' &&
+        (item.href === '/election-overview' &&
           route.name === 'ElectionHierarchyOverview') ||
         (item.href === '/pollingstation' &&
           route.name === 'PollingStationManagement');
@@ -86,7 +86,7 @@ export function useNavigation() {
         if (child.href === '/users' && route.name === 'UserManagement')
           return true;
         if (
-          child.href === '/election-hierarchy/overview' &&
+          child.href === '/election-overview' &&
           route.name === 'ElectionHierarchyOverview'
         )
           return true;
@@ -113,7 +113,7 @@ export function useNavigation() {
           ...child,
           current:
             (child.href === '/users' && route.name === 'UserManagement') ||
-            (child.href === '/election-hierarchy/overview' &&
+            (child.href === '/election-overview' &&
               route.name === 'ElectionHierarchyOverview') ||
             (child.href === '/counties' && route.name === 'CountyManagement') ||
             (child.href === '/constituencies' &&
