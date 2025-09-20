@@ -254,7 +254,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useCountyManagementStore } from '@/stores/countyManagement';
-import BulkUploadModal from '@/components/BulkUploadModal.vue';
+import BulkUploadModal from '@/components/pages/users/BulkUploadModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
 
 const authStore = useAuthStore();
