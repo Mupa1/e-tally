@@ -65,28 +65,7 @@
         />
 
         <!-- Profile dropdown -->
-        <div class="relative">
-          <button type="button" class="relative flex items-center">
-            <span class="absolute -inset-1.5" />
-            <span class="sr-only">Open user menu</span>
-            <div
-              class="size-8 rounded-full bg-gray-50 flex items-center justify-center"
-            >
-              <i class="fas fa-user text-gray-600"></i>
-            </div>
-            <span class="hidden lg:flex lg:items-center">
-              <span
-                class="ml-4 text-sm/6 font-semibold text-gray-900"
-                aria-hidden="true"
-                >{{ user?.firstName || 'User' }}</span
-              >
-              <i
-                class="fas fa-chevron-down ml-2 size-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </span>
-          </button>
-        </div>
+        <UserDropdown />
       </div>
     </div>
   </div>
@@ -94,6 +73,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth';
+import { UserDropdown } from '../dropdown';
 
 defineProps<{
   pageTitle: string;

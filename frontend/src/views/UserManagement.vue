@@ -130,33 +130,22 @@
             </div>
           </div>
           <div>
-            <label class="form-label">Filter by Role</label>
-            <select
-              class="form-select"
-              v-model="selectedRole"
-              @change="handleRoleFilter"
-            >
-              <option value="">All Roles</option>
-              <option
-                v-for="role in userRoles"
-                :key="role.value"
-                :value="role.value"
-              >
-                {{ role.label }}
-              </option>
-            </select>
+            <FormSelect
+              v-model="selectedRoleOption"
+              :options="roleOptions"
+              label="Filter by Role"
+              placeholder="All Roles"
+              @change="handleRoleFilterChange"
+            />
           </div>
           <div>
-            <label class="form-label">Filter by Status</label>
-            <select
-              class="form-select"
-              v-model="selectedStatus"
-              @change="handleStatusFilter"
-            >
-              <option value="">All Status</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
+            <FormSelect
+              v-model="selectedStatusOption"
+              :options="statusOptions"
+              label="Filter by Status"
+              placeholder="All Status"
+              @change="handleStatusFilterChange"
+            />
           </div>
           <div>
             <label class="form-label">&nbsp;</label>
@@ -169,276 +158,58 @@
       </div>
     </div>
 
-    <!-- Bulk Actions -->
-    <div class="card mb-6" v-if="selectedUsers.length > 0">
-      <div class="card-body">
-        <div class="flex justify-between items-center">
-          <span class="text-gray-600">
-            <i class="fas fa-check-circle mr-2"></i>
-            {{ selectedUsers.length }} user(s) selected
-          </span>
-          <div class="flex space-x-2">
-            <button
-              class="btn-primary text-sm px-3 py-1"
-              @click="bulkActivate"
-              :disabled="loading"
-            >
-              <i class="fas fa-user-check mr-1"></i>
-              Activate
-            </button>
-            <button
-              class="btn-outline-warning text-sm px-3 py-1"
-              @click="bulkDeactivate"
-              :disabled="loading"
-            >
-              <i class="fas fa-user-times mr-1"></i>
-              Deactivate
-            </button>
-            <button
-              class="btn-outline-secondary text-sm px-3 py-1"
-              @click="deselectAllUsers"
-            >
-              <i class="fas fa-times mr-1"></i>
-              Deselect All
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Users Table -->
-    <div class="card">
-      <div class="card-header">
-        <div class="flex justify-between items-center">
-          <h5 class="text-lg font-semibold text-gray-900">
-            <i class="fas fa-users mr-2"></i>
-            Users ({{ pagination.total }})
-          </h5>
-          <div class="flex items-center space-x-3">
+    <UserBulkTable
+      :users="users"
+      :pagination="pagination"
+      :loading="loading"
+      :can-edit-user="canEditUser"
+      :can-delete-user="canDeleteUser"
+      :can-bulk-activate="canBulkActivate"
+      :can-bulk-deactivate="canBulkDeactivate"
+      :can-bulk-delete="canBulkDelete"
+      title="Users"
+      :subtitle="`${pagination.total} users in your account`"
+      @action="handleUserAction"
+      @bulk-action="handleBulkAction"
+      @page-change="changePage"
+      @selection-change="handleSelectionChange"
+    >
+      <!-- Header Actions -->
+      <template #header-actions>
+        <div class="flex items-center space-x-3">
+          <div class="flex border border-gray-300 rounded-md">
             <button
-              class="btn-outline-primary text-sm px-3 py-1"
-              @click="selectAllUsers"
-              :disabled="users.length === 0"
+              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              @click="changePageSize(10)"
+              :class="{
+                'bg-primary-500 text-white': pagination.limit === 10,
+              }"
             >
-              <i class="fas fa-check-square mr-1"></i>
-              Select All
+              10
             </button>
-            <div class="flex border border-gray-300 rounded-md">
-              <button
-                class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
-                @click="changePageSize(10)"
-                :class="{
-                  'bg-primary-500 text-white': pagination.limit === 10,
-                }"
-              >
-                10
-              </button>
-              <button
-                class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
-                @click="changePageSize(25)"
-                :class="{
-                  'bg-primary-500 text-white': pagination.limit === 25,
-                }"
-              >
-                25
-              </button>
-              <button
-                class="px-3 py-1 text-sm hover:bg-gray-50"
-                @click="changePageSize(50)"
-                :class="{
-                  'bg-primary-500 text-white': pagination.limit === 50,
-                }"
-              >
-                50
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="table">
-          <thead>
-            <tr>
-              <th class="w-12">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  :checked="
-                    selectedUsers.length === users.length && users.length > 0
-                  "
-                  @change="toggleSelectAll"
-                />
-              </th>
-              <th>User</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Last Login</th>
-              <th>Created</th>
-              <th class="w-40">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td colspan="7" class="text-center py-8">
-                <div class="spinner-border text-primary-500" role="status">
-                  <span class="sr-only">Loading...</span>
-                </div>
-              </td>
-            </tr>
-            <tr v-else-if="users.length === 0">
-              <td colspan="7" class="text-center py-8 text-gray-500">
-                <i class="fas fa-users text-4xl mb-4 block"></i>
-                No users found
-              </td>
-            </tr>
-            <tr
-              v-else
-              v-for="user in users"
-              :key="user.id"
-              class="hover:bg-gray-50"
+            <button
+              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              @click="changePageSize(20)"
+              :class="{
+                'bg-primary-500 text-white': pagination.limit === 20,
+              }"
             >
-              <td>
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  :checked="selectedUsers.includes(user.id)"
-                  @change="toggleUserSelection(user.id)"
-                />
-              </td>
-              <td>
-                <div class="flex items-center">
-                  <div
-                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3"
-                  >
-                    <i class="fas fa-user-circle text-gray-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-gray-900">
-                      {{ user.firstName }} {{ user.lastName }}
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      {{ user.email }}
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      @{{ user.username }}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <span class="badge" :class="getRoleBadgeClass(user.role)">
-                  {{ getRoleLabel(user.role) }}
-                </span>
-              </td>
-              <td>
-                <span
-                  class="badge"
-                  :class="user.isActive ? 'bg-success' : 'bg-danger'"
-                >
-                  {{ user.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td>
-                <span v-if="user.lastLoginAt" class="text-gray-500">
-                  {{ formatDate(user.lastLoginAt) }}
-                </span>
-                <span v-else class="text-gray-500">Never</span>
-              </td>
-              <td>
-                <span class="text-gray-500">{{
-                  formatDate(user.createdAt)
-                }}</span>
-              </td>
-              <td>
-                <div class="flex space-x-1">
-                  <button
-                    class="btn-outline-primary p-2"
-                    @click="viewUser(user)"
-                    title="View User"
-                  >
-                    <i class="fas fa-eye text-sm"></i>
-                  </button>
-                  <button
-                    class="btn-outline-secondary p-2"
-                    @click="editUser(user)"
-                    :disabled="!canEditUser(user)"
-                    title="Edit User"
-                  >
-                    <i class="fas fa-edit text-sm"></i>
-                  </button>
-                  <button
-                    class="btn-outline-warning p-2"
-                    @click="changeUserPassword(user)"
-                    :disabled="!canEditUser(user)"
-                    title="Change Password"
-                  >
-                    <i class="fas fa-key text-sm"></i>
-                  </button>
-                  <button
-                    class="btn-outline-danger p-2"
-                    @click="deleteUser(user)"
-                    :disabled="!canDeleteUser(user)"
-                    title="Delete User"
-                  >
-                    <i class="fas fa-trash text-sm"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="card-footer" v-if="pagination.totalPages > 1">
-        <div class="flex justify-between items-center">
-          <div class="text-gray-600">
-            Showing
-            {{ (pagination.page - 1) * pagination.limit + 1 }} to
-            {{ Math.min(pagination.page * pagination.limit, pagination.total) }}
-            of {{ pagination.total }} users
+              20
+            </button>
+            <button
+              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              @click="changePageSize(50)"
+              :class="{
+                'bg-primary-500 text-white': pagination.limit === 50,
+              }"
+            >
+              50
+            </button>
           </div>
-          <nav>
-            <ul class="pagination">
-              <li
-                class="page-item"
-                :class="{ disabled: pagination.page === 1 }"
-              >
-                <button
-                  class="page-link"
-                  @click="changePage(pagination.page - 1)"
-                  :disabled="pagination.page === 1"
-                >
-                  Previous
-                </button>
-              </li>
-              <li
-                v-for="page in visiblePages"
-                :key="page"
-                class="page-item"
-                :class="{ active: page === pagination.page }"
-              >
-                <button class="page-link" @click="changePage(page)">
-                  {{ page }}
-                </button>
-              </li>
-              <li
-                class="page-item"
-                :class="{
-                  disabled: pagination.page === pagination.totalPages,
-                }"
-              >
-                <button
-                  class="page-link"
-                  @click="changePage(pagination.page + 1)"
-                  :disabled="pagination.page === pagination.totalPages"
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
         </div>
-      </div>
-    </div>
+      </template>
+    </UserBulkTable>
 
     <!-- Create User Modal -->
     <CreateUserModal
@@ -482,6 +253,8 @@ import EditUserModal from '@/components/EditUserModal.vue';
 import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
 import ViewUserModal from '@/components/ViewUserModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
+import { FormSelect, type SelectOption } from '@/components/select';
+import { UserBulkTable } from '@/components/table';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
@@ -493,8 +266,8 @@ const showPasswordModal = ref(false);
 const showViewModal = ref(false);
 const selectedUser = ref<User | null>(null);
 const searchTerm = ref('');
-const selectedRole = ref('');
-const selectedStatus = ref('');
+const selectedRoleOption = ref<SelectOption | null>(null);
+const selectedStatusOption = ref<SelectOption | null>(null);
 
 // Computed properties
 const user = computed(() => authStore.user);
@@ -540,6 +313,22 @@ const userRoles = computed(() => [
   },
 ]);
 
+// Options for select components
+const roleOptions = computed<SelectOption[]>(() => [
+  { id: '', label: 'All Roles' },
+  ...userRoles.value.map((role) => ({
+    id: role.value,
+    label: role.label,
+    value: role.value,
+  })),
+]);
+
+const statusOptions = computed<SelectOption[]>(() => [
+  { id: '', label: 'All Status' },
+  { id: 'true', label: 'Active', value: 'true' },
+  { id: 'false', label: 'Inactive', value: 'false' },
+]);
+
 // Permission checks
 const canCreateUser = computed(() => {
   return (
@@ -562,6 +351,25 @@ const canDeleteUser = (targetUser: User) => {
   if (targetUser.id === user.value.id) return false; // Can't delete self
   return true;
 };
+
+// Bulk operation permissions
+const canBulkActivate = computed(() => {
+  return (
+    user.value?.role === 'SUPER_ADMIN' ||
+    user.value?.role === 'CENTRAL_COMMAND_ADMIN'
+  );
+});
+
+const canBulkDeactivate = computed(() => {
+  return (
+    user.value?.role === 'SUPER_ADMIN' ||
+    user.value?.role === 'CENTRAL_COMMAND_ADMIN'
+  );
+});
+
+const canBulkDelete = computed(() => {
+  return user.value?.role === 'SUPER_ADMIN';
+});
 
 // Pagination
 const visiblePages = computed(() => {
@@ -606,24 +414,25 @@ const handleSearch = () => {
   userManagementStore.searchUsers(searchTerm.value);
 };
 
-const handleRoleFilter = () => {
-  userManagementStore.filterByRole(selectedRole.value);
+const handleRoleFilterChange = (option: SelectOption | null) => {
+  const roleValue = option?.value || '';
+  userManagementStore.filterByRole(roleValue);
 };
 
-const handleStatusFilter = () => {
-  if (selectedStatus.value === '') {
+const handleStatusFilterChange = (option: SelectOption | null) => {
+  if (!option || option.value === '') {
     // Clear status filter by fetching all users
     userManagementStore.fetchUsers({ page: 1 });
   } else {
-    const isActive = selectedStatus.value === 'true';
+    const isActive = option.value === 'true';
     userManagementStore.filterByStatus(isActive);
   }
 };
 
 const clearFilters = async () => {
   searchTerm.value = '';
-  selectedRole.value = '';
-  selectedStatus.value = '';
+  selectedRoleOption.value = null;
+  selectedStatusOption.value = null;
   await userManagementStore.clearFilters();
 };
 
@@ -635,35 +444,7 @@ const changePageSize = (limit: number) => {
   userManagementStore.fetchUsers({ limit, page: 1 });
 };
 
-const toggleSelectAll = () => {
-  if (selectedUsers.value.length === users.value.length) {
-    userManagementStore.deselectAllUsers();
-  } else {
-    userManagementStore.selectAllUsers();
-  }
-};
-
-const toggleUserSelection = (id: string) => {
-  userManagementStore.toggleUserSelection(id);
-};
-
-const selectAllUsers = () => {
-  userManagementStore.selectAllUsers();
-};
-
-const deselectAllUsers = () => {
-  userManagementStore.deselectAllUsers();
-};
-
-const bulkActivate = async () => {
-  await userManagementStore.bulkActivateUsers(selectedUsers.value);
-  deselectAllUsers();
-};
-
-const bulkDeactivate = async () => {
-  await userManagementStore.bulkDeactivateUsers(selectedUsers.value);
-  deselectAllUsers();
-};
+// Note: Selection management is now handled by the UserBulkTable component
 
 const viewUser = (user: User) => {
   selectedUser.value = user;
@@ -706,37 +487,58 @@ const handlePasswordChanged = () => {
   selectedUser.value = null;
 };
 
-// Utility functions
+const handleUserAction = (action: string, user: User, index: number) => {
+  switch (action) {
+    case 'view':
+      viewUser(user);
+      break;
+    case 'edit':
+      editUser(user);
+      break;
+    case 'password':
+      changeUserPassword(user);
+      break;
+    case 'delete':
+      deleteUser(user);
+      break;
+  }
+};
+
+const handleBulkAction = async (action: string, selectedUsers: User[]) => {
+  const selectedUserIds = selectedUsers.map((user) => user.id);
+
+  switch (action) {
+    case 'activate':
+      await userManagementStore.bulkActivateUsers(selectedUserIds);
+      break;
+    case 'deactivate':
+      await userManagementStore.bulkDeactivateUsers(selectedUserIds);
+      break;
+    case 'delete':
+      if (
+        confirm(
+          `Are you sure you want to delete ${selectedUsers.length} users?`
+        )
+      ) {
+        // For now, delete users one by one since bulkDeleteUsers doesn't exist
+        for (const user of selectedUsers) {
+          await userManagementStore.deleteUser(user.id);
+        }
+      }
+      break;
+  }
+};
+
+const handleSelectionChange = (selectedUsers: User[]) => {
+  // Update the store with the selected user IDs
+  const selectedUserIds = selectedUsers.map((user) => user.id);
+  userManagementStore.selectedUsers = selectedUserIds;
+};
+
+// Utility functions (kept for compatibility with other parts of the component)
 const getRoleLabel = (role: UserRole) => {
   const roleObj = userRoles.value.find((r) => r.value === role);
   return roleObj ? roleObj.label : role;
-};
-
-const getRoleBadgeClass = (role: UserRole) => {
-  const classes = {
-    SUPER_ADMIN: 'bg-danger',
-    CENTRAL_COMMAND_ADMIN: 'bg-warning',
-    CENTRAL_COMMAND_USER: 'bg-info',
-    PRESIDENTIAL_ELECTION_OBSERVER: 'bg-primary',
-    PARLIAMENTARY_ELECTION_OBSERVER: 'bg-primary',
-    LOCAL_GOVERNMENT_ELECTION_OBSERVER: 'bg-primary',
-    SENATORIAL_ELECTION_OBSERVER: 'bg-primary',
-    GUBERNATORIAL_ELECTION_OBSERVER: 'bg-primary',
-    COUNTY_LEVEL_SUPERVISOR: 'bg-success',
-    CONSTITUENCY_LEVEL_SUPERVISOR: 'bg-success',
-    COUNTY_ASSEMBLY_WARD_SUPERVISOR: 'bg-success',
-  };
-  return classes[role] || 'bg-secondary';
-};
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 };
 
 // Lifecycle
