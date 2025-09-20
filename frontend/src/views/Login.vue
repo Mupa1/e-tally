@@ -1,17 +1,17 @@
 <template>
-  <div class="login-page">
+  <div class="min-h-screen relative flex flex-col">
     <!-- Background -->
     <div class="login-background">
       <div class="login-overlay"></div>
     </div>
 
     <!-- Login Form -->
-    <div class="container">
-      <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-md-6 col-lg-5 col-xl-4">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-center items-center min-h-screen">
+        <div class="w-full max-w-md lg:max-w-lg xl:max-w-xl">
           <div class="login-card">
             <!-- Header -->
-            <div class="text-center mb-4">
+            <div class="text-center mb-6">
               <div class="login-logo">
                 <i class="fas fa-vote-yea"></i>
               </div>
@@ -20,46 +20,46 @@
             </div>
 
             <!-- Login Form -->
-            <form @submit.prevent="handleLogin" class="login-form">
-              <div class="mb-3">
-                <label for="username" class="form-label">
-                  <i class="fas fa-user me-2"></i>
+            <form @submit.prevent="handleLogin" class="space-y-4">
+              <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-user mr-2"></i>
                   Username
                 </label>
                 <input
                   type="text"
                   id="username"
                   v-model="form.username"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.username }"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                  :class="{ 'border-red-500 focus:ring-red-500': errors.username }"
                   placeholder="Enter your username"
                   required
                   :disabled="loading"
                 />
-                <div v-if="errors.username" class="invalid-feedback">
+                <div v-if="errors.username" class="mt-1 text-sm text-red-600">
                   {{ errors.username }}
                 </div>
               </div>
 
-              <div class="mb-3">
-                <label for="password" class="form-label">
-                  <i class="fas fa-lock me-2"></i>
+              <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-lock mr-2"></i>
                   Password
                 </label>
-                <div class="password-input">
+                <div class="relative">
                   <input
                     :type="showPassword ? 'text' : 'password'"
                     id="password"
                     v-model="form.password"
-                    class="form-control"
-                    :class="{ 'is-invalid': errors.password }"
+                    class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                    :class="{ 'border-red-500 focus:ring-red-500': errors.password }"
                     placeholder="Enter your password"
                     required
                     :disabled="loading"
                   />
                   <button
                     type="button"
-                    class="password-toggle"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors duration-200"
                     @click="togglePassword"
                     :disabled="loading"
                   >
@@ -68,53 +68,53 @@
                     ></i>
                   </button>
                 </div>
-                <div v-if="errors.password" class="invalid-feedback">
+                <div v-if="errors.password" class="mt-1 text-sm text-red-600">
                   {{ errors.password }}
                 </div>
               </div>
 
-              <div class="mb-3 form-check">
+              <div class="flex items-center">
                 <input
                   type="checkbox"
                   id="rememberMe"
                   v-model="form.rememberMe"
-                  class="form-check-input"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   :disabled="loading"
                 />
-                <label for="rememberMe" class="form-check-label">
+                <label for="rememberMe" class="ml-2 block text-sm text-gray-700">
                   Remember me
                 </label>
               </div>
 
               <button
                 type="submit"
-                class="btn btn-primary w-100 login-btn"
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 :disabled="loading || !isFormValid"
               >
                 <span
                   v-if="loading"
-                  class="spinner-border spinner-border-sm me-2"
+                  class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
                 ></span>
-                <i v-else class="fas fa-sign-in-alt me-2"></i>
+                <i v-else class="fas fa-sign-in-alt mr-2"></i>
                 {{ loading ? 'Signing in...' : 'Sign In' }}
               </button>
 
-              <div v-if="error" class="alert alert-danger mt-3" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
+              <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
                 {{ error }}
               </div>
             </form>
 
             <!-- Footer -->
-            <div class="login-footer text-center mt-4">
+            <div class="text-center mt-6">
               <p class="mb-0">
-                <a href="#" class="text-decoration-none"
+                <a href="#" class="text-blue-600 hover:text-blue-800 transition-colors duration-200"
                   >Forgot your password?</a
                 >
               </p>
               <p class="mt-2 mb-0">
-                <router-link to="/" class="text-decoration-none">
-                  <i class="fas fa-arrow-left me-1"></i>
+                <router-link to="/" class="text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                  <i class="fas fa-arrow-left mr-1"></i>
                   Back to Home
                 </router-link>
               </p>
@@ -125,36 +125,30 @@
     </div>
 
     <!-- Demo Credentials -->
-    <div class="demo-credentials">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-md-8">
+    <div class="fixed bottom-0 left-0 right-0 z-50 p-4">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-center">
+          <div class="w-full max-w-4xl">
             <div class="demo-card">
               <h6 class="demo-title">
-                <i class="fas fa-info-circle me-2"></i>
+                <i class="fas fa-info-circle mr-2"></i>
                 Demo Credentials
               </h6>
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="demo-account">
-                    <strong>Super Admin</strong>
-                    <p class="mb-1">Username: superadmin</p>
-                    <p class="mb-0">Password: SuperAdmin123!</p>
-                  </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="demo-account" @click="fillDemoCredentials('superadmin', 'SuperAdmin123!')">
+                  <strong>Super Admin</strong>
+                  <p class="mb-1">Username: superadmin</p>
+                  <p class="mb-0">Password: SuperAdmin123!</p>
                 </div>
-                <div class="col-md-4">
-                  <div class="demo-account">
-                    <strong>Admin</strong>
-                    <p class="mb-1">Username: test-admin</p>
-                    <p class="mb-0">Password: TestPassword123!</p>
-                  </div>
+                <div class="demo-account" @click="fillDemoCredentials('test-admin', 'TestPassword123!')">
+                  <strong>Admin</strong>
+                  <p class="mb-1">Username: test-admin</p>
+                  <p class="mb-0">Password: TestPassword123!</p>
                 </div>
-                <div class="col-md-4">
-                  <div class="demo-account">
-                    <strong>User</strong>
-                    <p class="mb-1">Username: test-user</p>
-                    <p class="mb-0">Password: TestPassword123!</p>
-                  </div>
+                <div class="demo-account" @click="fillDemoCredentials('test-user', 'TestPassword123!')">
+                  <strong>User</strong>
+                  <p class="mb-1">Username: test-user</p>
+                  <p class="mb-0">Password: TestPassword123!</p>
                 </div>
               </div>
             </div>
@@ -256,24 +250,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.login-page {
-  min-height: 100vh;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
 .login-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color) 0%,
-    var(--secondary-color) 100%
-  );
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
   z-index: -2;
 }
 
@@ -311,11 +294,7 @@ onMounted(() => {
 .login-logo {
   width: 80px;
   height: 80px;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color),
-    var(--secondary-color)
-  );
+  background: linear-gradient(135deg, #2c3e50, #3498db);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -332,66 +311,14 @@ onMounted(() => {
 .login-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: #2c3e50;
   margin-bottom: 0.5rem;
 }
 
 .login-subtitle {
-  color: #6c757d;
+  color: #6b7280;
   font-size: 1rem;
   margin-bottom: 0;
-}
-
-.password-input {
-  position: relative;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #6c757d;
-  cursor: pointer;
-  padding: 0;
-  z-index: 10;
-}
-
-.password-toggle:hover {
-  color: var(--secondary-color);
-}
-
-.login-btn {
-  padding: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.login-footer a {
-  color: var(--secondary-color);
-  font-weight: 500;
-}
-
-.login-footer a:hover {
-  color: var(--primary-color);
-}
-
-.demo-credentials {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  padding: 1rem 0;
 }
 
 .demo-card {
@@ -404,7 +331,7 @@ onMounted(() => {
 }
 
 .demo-title {
-  color: #ffc107;
+  color: #fbbf24;
   font-weight: 600;
   margin-bottom: 1rem;
   text-align: center;
@@ -423,7 +350,7 @@ onMounted(() => {
 }
 
 .demo-account strong {
-  color: #ffc107;
+  color: #fbbf24;
   display: block;
   margin-bottom: 0.5rem;
 }

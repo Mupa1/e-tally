@@ -16,9 +16,9 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
 #app {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #f9fafb;
 }
 </style>

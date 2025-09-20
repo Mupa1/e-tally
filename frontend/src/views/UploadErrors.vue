@@ -1,302 +1,274 @@
 <template>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-12">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h2 class="mb-1">
-              <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-              Upload Errors
-            </h2>
-            <p class="text-muted mb-0">
-              Detailed view of errors encountered during bulk upload
-            </p>
-          </div>
-          <div>
-            <button class="btn btn-outline-secondary me-2" @click="goBack">
-              <i class="fas fa-arrow-left me-1"></i>
-              Back to Upload
-            </button>
-            <button class="btn btn-primary" @click="downloadErrorReport">
-              <i class="fas fa-download me-1"></i>
-              Download Report
-            </button>
-          </div>
-        </div>
+  <MainLayout
+    page-title="Upload Errors"
+    page-subtitle="Detailed view of errors encountered during bulk upload"
+  >
+    <!-- Header Actions -->
+    <div class="flex justify-end mb-6">
+      <div class="flex gap-3">
+        <button class="btn-outline-secondary" @click="goBack">
+          <i class="fas fa-arrow-left mr-1"></i>
+          Back to Upload
+        </button>
+        <button class="btn-primary" @click="downloadErrorReport">
+          <i class="fas fa-download mr-1"></i>
+          Download Report
+        </button>
+      </div>
+    </div>
 
-        <!-- Summary Cards -->
-        <div class="row mb-4">
-          <div class="col-md-3">
-            <div class="card bg-danger text-white">
-              <div class="card-body">
-                <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-times-circle fa-2x"></i>
-                  </div>
-                  <div class="flex-grow-1 ms-3">
-                    <h4 class="mb-0">{{ errorSummary.total }}</h4>
-                    <small>Total Errors</small>
-                  </div>
-                </div>
-              </div>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="card bg-red-500 text-white">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <i class="fas fa-times-circle text-2xl"></i>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-warning text-white">
-              <div class="card-body">
-                <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-map-marker-alt fa-2x"></i>
-                  </div>
-                  <div class="flex-grow-1 ms-3">
-                    <h4 class="mb-0">
-                      {{ errorSummary.byType.CONSTITUENCY_NOT_FOUND || 0 }}
-                    </h4>
-                    <small>Constituency Errors</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-info text-white">
-              <div class="card-body">
-                <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-building fa-2x"></i>
-                  </div>
-                  <div class="flex-grow-1 ms-3">
-                    <h4 class="mb-0">
-                      {{ errorSummary.byType.COUNTY_NOT_FOUND || 0 }}
-                    </h4>
-                    <small>County Errors</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card bg-secondary text-white">
-              <div class="card-body">
-                <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-home fa-2x"></i>
-                  </div>
-                  <div class="flex-grow-1 ms-3">
-                    <h4 class="mb-0">
-                      {{ errorSummary.byType.CAW_NOT_FOUND || 0 }}
-                    </h4>
-                    <small>CAW Errors</small>
-                  </div>
-                </div>
-              </div>
+            <div class="flex-grow-1 ml-3">
+              <h4 class="text-2xl font-bold mb-0">{{ errorSummary.total }}</h4>
+              <small>Total Errors</small>
             </div>
           </div>
         </div>
-
-        <!-- Filters -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <div class="row align-items-center">
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Filter by Error Type</label>
-                <select v-model="selectedErrorType" class="form-select">
-                  <option value="">All Error Types</option>
-                  <option value="COUNTY_NOT_FOUND">County Not Found</option>
-                  <option value="CONSTITUENCY_NOT_FOUND">
-                    Constituency Not Found
-                  </option>
-                  <option value="CAW_NOT_FOUND">CAW Not Found</option>
-                  <option value="PROCESSING_ERROR">Processing Error</option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Search</label>
-                <input
-                  v-model="searchTerm"
-                  type="text"
-                  class="form-control"
-                  placeholder="Search by code or name..."
-                />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-bold">Show</label>
-                <select v-model="itemsPerPage" class="form-select">
-                  <option value="10">10 per page</option>
-                  <option value="25">25 per page</option>
-                  <option value="50">50 per page</option>
-                  <option value="100">100 per page</option>
-                </select>
-              </div>
+      </div>
+      <div class="card bg-yellow-500 text-white">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <i class="fas fa-map-marker-alt text-2xl"></i>
+            </div>
+            <div class="flex-grow-1 ml-3">
+              <h4 class="text-2xl font-bold mb-0">
+                {{ errorSummary.byType.CONSTITUENCY_NOT_FOUND || 0 }}
+              </h4>
+              <small>Constituency Errors</small>
             </div>
           </div>
         </div>
-
-        <!-- Error Table -->
-        <div class="card">
-          <div class="card-header">
-            <h5 class="mb-0">
-              <i class="fas fa-list me-2"></i>
-              Error Details
-              <span class="badge bg-danger ms-2">{{
-                filteredErrors.length
-              }}</span>
-            </h5>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Polling Station</th>
-                    <th>County</th>
-                    <th>Constituency</th>
-                    <th>CAW</th>
-                    <th>Error Type</th>
-                    <th>Error Message</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="error in paginatedErrors"
-                    :key="`${error.code}-${error.errorType}`"
-                  >
-                    <td>
-                      <div>
-                        <strong>{{ error.code }}</strong>
-                        <br />
-                        <small class="text-muted">{{ error.name }}</small>
-                      </div>
-                    </td>
-                    <td>
-                      <div v-if="error.countyCode">
-                        <strong>{{ error.countyCode }}</strong>
-                        <br />
-                        <small class="text-muted">{{ error.countyName }}</small>
-                      </div>
-                      <span v-else class="text-muted">-</span>
-                    </td>
-                    <td>
-                      <div v-if="error.constCode">
-                        <strong>{{ error.constCode }}</strong>
-                        <br />
-                        <small class="text-muted">{{ error.constName }}</small>
-                      </div>
-                      <span v-else class="text-muted">-</span>
-                    </td>
-                    <td>
-                      <div v-if="error.cawCode">
-                        <strong>{{ error.cawCode }}</strong>
-                        <br />
-                        <small class="text-muted">{{ error.cawName }}</small>
-                      </div>
-                      <span v-else class="text-muted">-</span>
-                    </td>
-                    <td>
-                      <span
-                        class="badge"
-                        :class="getErrorTypeBadgeClass(error.errorType)"
-                      >
-                        {{ getErrorTypeLabel(error.errorType) }}
-                      </span>
-                    </td>
-                    <td>
-                      <div class="text-wrap" style="max-width: 300px">
-                        {{ error.error }}
-                      </div>
-                    </td>
-                    <td>
-                      <button
-                        class="btn btn-sm btn-outline-primary"
-                        @click="viewRowData(error)"
-                        title="View Row Data"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+      </div>
+      <div class="card bg-blue-500 text-white">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <i class="fas fa-building text-2xl"></i>
             </div>
-
-            <!-- Pagination -->
-            <div
-              v-if="totalPages > 1"
-              class="d-flex justify-content-between align-items-center p-3 border-top"
-            >
-              <div class="text-muted">
-                Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-                {{
-                  Math.min(currentPage * itemsPerPage, filteredErrors.length)
-                }}
-                of {{ filteredErrors.length }} errors
-              </div>
-              <nav>
-                <ul class="pagination pagination-sm mb-0">
-                  <li
-                    class="page-item"
-                    :class="{ disabled: currentPage === 1 }"
-                  >
-                    <button
-                      class="page-link"
-                      @click="currentPage = 1"
-                      :disabled="currentPage === 1"
-                    >
-                      First
-                    </button>
-                  </li>
-                  <li
-                    class="page-item"
-                    :class="{ disabled: currentPage === 1 }"
-                  >
-                    <button
-                      class="page-link"
-                      @click="currentPage--"
-                      :disabled="currentPage === 1"
-                    >
-                      Previous
-                    </button>
-                  </li>
-                  <li
-                    v-for="page in visiblePages"
-                    :key="page"
-                    class="page-item"
-                    :class="{ active: currentPage === page }"
-                  >
-                    <button class="page-link" @click="currentPage = page">
-                      {{ page }}
-                    </button>
-                  </li>
-                  <li
-                    class="page-item"
-                    :class="{ disabled: currentPage === totalPages }"
-                  >
-                    <button
-                      class="page-link"
-                      @click="currentPage++"
-                      :disabled="currentPage === totalPages"
-                    >
-                      Next
-                    </button>
-                  </li>
-                  <li
-                    class="page-item"
-                    :class="{ disabled: currentPage === totalPages }"
-                  >
-                    <button
-                      class="page-link"
-                      @click="currentPage = totalPages"
-                      :disabled="currentPage === totalPages"
-                    >
-                      Last
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+            <div class="flex-grow-1 ml-3">
+              <h4 class="text-2xl font-bold mb-0">
+                {{ errorSummary.byType.COUNTY_NOT_FOUND || 0 }}
+              </h4>
+              <small>County Errors</small>
             </div>
           </div>
+        </div>
+      </div>
+      <div class="card bg-gray-500 text-white">
+        <div class="card-body">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <i class="fas fa-home text-2xl"></i>
+            </div>
+            <div class="flex-grow-1 ml-3">
+              <h4 class="text-2xl font-bold mb-0">
+                {{ errorSummary.byType.CAW_NOT_FOUND || 0 }}
+              </h4>
+              <small>CAW Errors</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="card-body">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="flex-1">
+            <label class="form-label font-semibold">Filter by Error Type</label>
+            <select v-model="selectedErrorType" class="form-select">
+              <option value="">All Error Types</option>
+              <option value="COUNTY_NOT_FOUND">County Not Found</option>
+              <option value="CONSTITUENCY_NOT_FOUND">
+                Constituency Not Found
+              </option>
+              <option value="CAW_NOT_FOUND">CAW Not Found</option>
+              <option value="PROCESSING_ERROR">Processing Error</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="form-label font-semibold">Search</label>
+            <input
+              v-model="searchTerm"
+              type="text"
+              class="form-control"
+              placeholder="Search by code or name..."
+            />
+          </div>
+          <div class="flex-1">
+            <label class="form-label font-semibold">Show</label>
+            <select v-model="itemsPerPage" class="form-select">
+              <option value="10">10 per page</option>
+              <option value="25">25 per page</option>
+              <option value="50">50 per page</option>
+              <option value="100">100 per page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="text-lg font-semibold mb-0">
+          <i class="fas fa-list mr-2"></i>
+          Error Details
+          <span class="badge bg-danger ms-2">{{ filteredErrors.length }}</span>
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Polling Station</th>
+                <th>County</th>
+                <th>Constituency</th>
+                <th>CAW</th>
+                <th>Error Type</th>
+                <th>Error Message</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="error in paginatedErrors"
+                :key="`${error.code}-${error.errorType}`"
+              >
+                <td>
+                  <div>
+                    <strong>{{ error.code }}</strong>
+                    <br />
+                    <small class="text-muted">{{ error.name }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div v-if="error.countyCode">
+                    <strong>{{ error.countyCode }}</strong>
+                    <br />
+                    <small class="text-muted">{{ error.countyName }}</small>
+                  </div>
+                  <span v-else class="text-muted">-</span>
+                </td>
+                <td>
+                  <div v-if="error.constCode">
+                    <strong>{{ error.constCode }}</strong>
+                    <br />
+                    <small class="text-muted">{{ error.constName }}</small>
+                  </div>
+                  <span v-else class="text-muted">-</span>
+                </td>
+                <td>
+                  <div v-if="error.cawCode">
+                    <strong>{{ error.cawCode }}</strong>
+                    <br />
+                    <small class="text-muted">{{ error.cawName }}</small>
+                  </div>
+                  <span v-else class="text-muted">-</span>
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    :class="getErrorTypeBadgeClass(error.errorType)"
+                  >
+                    {{ getErrorTypeLabel(error.errorType) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="text-wrap" style="max-width: 300px">
+                    {{ error.error }}
+                  </div>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    @click="viewRowData(error)"
+                    title="View Row Data"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          v-if="totalPages > 1"
+          class="d-flex justify-content-between align-items-center p-3 border-top"
+        >
+          <div class="text-muted">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, filteredErrors.length) }}
+            of {{ filteredErrors.length }} errors
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <button
+                  class="page-link"
+                  @click="currentPage = 1"
+                  :disabled="currentPage === 1"
+                >
+                  First
+                </button>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <button
+                  class="page-link"
+                  @click="currentPage--"
+                  :disabled="currentPage === 1"
+                >
+                  Previous
+                </button>
+              </li>
+              <li
+                v-for="page in visiblePages"
+                :key="page"
+                class="page-item"
+                :class="{ active: currentPage === page }"
+              >
+                <button class="page-link" @click="currentPage = page">
+                  {{ page }}
+                </button>
+              </li>
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === totalPages }"
+              >
+                <button
+                  class="page-link"
+                  @click="currentPage++"
+                  :disabled="currentPage === totalPages"
+                >
+                  Next
+                </button>
+              </li>
+              <li
+                class="page-item"
+                :class="{ disabled: currentPage === totalPages }"
+              >
+                <button
+                  class="page-link"
+                  @click="currentPage = totalPages"
+                  :disabled="currentPage === totalPages"
+                >
+                  Last
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
@@ -358,13 +330,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </MainLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import '@/assets/css/views.css';
+import MainLayout from '@/components/MainLayout.vue';
 
 const router = useRouter();
 

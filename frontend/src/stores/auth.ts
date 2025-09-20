@@ -26,26 +26,14 @@ export const useAuthStore = defineStore('auth', () => {
     const storedToken = localStorage.getItem('accessToken');
     const storedUser = localStorage.getItem('user');
 
-    console.log(
-      'Auth initialization - storedToken:',
-      storedToken ? 'exists' : 'null'
-    );
-    console.log(
-      'Auth initialization - storedUser:',
-      storedUser ? 'exists' : 'null'
-    );
-
     if (storedToken && storedUser) {
       try {
         token.value = storedToken;
         user.value = JSON.parse(storedUser);
-        console.log('Auth initialized successfully');
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         clearAuth();
       }
-    } else {
-      console.log('No stored auth data found');
     }
   };
 

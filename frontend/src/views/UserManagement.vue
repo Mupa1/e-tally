@@ -1,432 +1,441 @@
 <template>
-  <div class="user-management-page">
-    <!-- Top Navigation Bar -->
-    <TopBar />
+  <MainLayout
+    page-title="User Management"
+    page-subtitle="Manage system users and permissions"
+  >
+    <!-- Action Buttons -->
+    <div class="flex justify-end mb-6">
+      <div class="flex space-x-3">
+        <button
+          class="btn-outline-primary"
+          @click="showCreateModal = true"
+          :disabled="!canCreateUser"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          Add User
+        </button>
+        <button
+          class="btn-outline-secondary"
+          @click="refreshUsers"
+          :disabled="loading"
+        >
+          <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': loading }"></i>
+          Refresh
+        </button>
+      </div>
+    </div>
 
-    <!-- Main Content -->
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <AppSidebar />
-
-        <!-- Main Content Area -->
-        <div class="col-md-9 col-lg-10 main-content">
-          <div class="content-wrapper">
-            <!-- Page Header -->
-            <div class="page-header">
-              <h1 class="page-title">User Management</h1>
-              <p class="page-subtitle">Manage system users and permissions</p>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="d-flex justify-content-end mb-4">
-              <div class="header-actions">
-                <button
-                  class="btn btn-outline-primary me-2"
-                  @click="showCreateModal = true"
-                  :disabled="!canCreateUser"
-                >
-                  <i class="fas fa-plus me-1"></i>
-                  Add User
-                </button>
-                <button
-                  class="btn btn-outline-secondary"
-                  @click="refreshUsers"
-                  :disabled="loading"
-                >
-                  <i
-                    class="fas fa-sync-alt me-1"
-                    :class="{ 'fa-spin': loading }"
-                  ></i>
-                  Refresh
-                </button>
-              </div>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="row mb-4" v-if="stats">
-              <div class="col-md-3 mb-3">
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                  </div>
-                  <div class="stat-content">
-                    <h3>{{ stats.totalUsers }}</h3>
-                    <p>Total Users</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-3 mb-3">
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-user-check"></i>
-                  </div>
-                  <div class="stat-content">
-                    <h3>{{ stats.activeUsers }}</h3>
-                    <p>Active Users</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-3 mb-3">
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-user-times"></i>
-                  </div>
-                  <div class="stat-content">
-                    <h3>{{ stats.inactiveUsers }}</h3>
-                    <p>Inactive Users</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-3 mb-3">
-                <div class="stat-card">
-                  <div class="stat-icon">
-                    <i class="fas fa-user-plus"></i>
-                  </div>
-                  <div class="stat-content">
-                    <h3>{{ stats.recentUsers.length }}</h3>
-                    <p>Recent Users</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Filters and Search -->
-            <div class="card mb-4">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label class="form-label">Search Users</label>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                      </span>
-                      <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Search by name, email, or username..."
-                        v-model="searchTerm"
-                        @input="handleSearch"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-3 mb-3">
-                    <label class="form-label">Filter by Role</label>
-                    <select
-                      class="form-select"
-                      v-model="selectedRole"
-                      @change="handleRoleFilter"
-                    >
-                      <option value="">All Roles</option>
-                      <option
-                        v-for="role in userRoles"
-                        :key="role.value"
-                        :value="role.value"
-                      >
-                        {{ role.label }}
-                      </option>
-                    </select>
-                  </div>
-                  <div class="col-md-3 mb-3">
-                    <label class="form-label">Filter by Status</label>
-                    <select
-                      class="form-select"
-                      v-model="selectedStatus"
-                      @change="handleStatusFilter"
-                    >
-                      <option value="">All Status</option>
-                      <option value="true">Active</option>
-                      <option value="false">Inactive</option>
-                    </select>
-                  </div>
-                  <div class="col-md-2 mb-3">
-                    <label class="form-label">&nbsp;</label>
-                    <button
-                      class="btn btn-outline-secondary w-100"
-                      @click="clearFilters"
-                    >
-                      <i class="fas fa-times me-1"></i>
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bulk Actions -->
-            <div class="card mb-4" v-if="selectedUsers.length > 0">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted">
-                    <i class="fas fa-check-circle me-1"></i>
-                    {{ selectedUsers.length }} user(s) selected
-                  </span>
-                  <div class="bulk-actions">
-                    <button
-                      class="btn btn-success btn-sm me-2"
-                      @click="bulkActivate"
-                      :disabled="loading"
-                    >
-                      <i class="fas fa-user-check me-1"></i>
-                      Activate
-                    </button>
-                    <button
-                      class="btn btn-warning btn-sm me-2"
-                      @click="bulkDeactivate"
-                      :disabled="loading"
-                    >
-                      <i class="fas fa-user-times me-1"></i>
-                      Deactivate
-                    </button>
-                    <button
-                      class="btn btn-outline-secondary btn-sm"
-                      @click="deselectAllUsers"
-                    >
-                      <i class="fas fa-times me-1"></i>
-                      Deselect All
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Users Table -->
-            <div class="card">
-              <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                  <h5 class="card-title mb-0">
-                    <i class="fas fa-users me-2"></i>
-                    Users ({{ pagination.total }})
-                  </h5>
-                  <div class="table-actions">
-                    <button
-                      class="btn btn-outline-primary btn-sm me-2"
-                      @click="selectAllUsers"
-                      :disabled="users.length === 0"
-                    >
-                      <i class="fas fa-check-square me-1"></i>
-                      Select All
-                    </button>
-                    <div class="btn-group" role="group">
-                      <button
-                        class="btn btn-outline-secondary btn-sm"
-                        @click="changePageSize(10)"
-                        :class="{ active: pagination.limit === 10 }"
-                      >
-                        10
-                      </button>
-                      <button
-                        class="btn btn-outline-secondary btn-sm"
-                        @click="changePageSize(25)"
-                        :class="{ active: pagination.limit === 25 }"
-                      >
-                        25
-                      </button>
-                      <button
-                        class="btn btn-outline-secondary btn-sm"
-                        @click="changePageSize(50)"
-                        :class="{ active: pagination.limit === 50 }"
-                      >
-                        50
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th width="50">
-                          <input
-                            type="checkbox"
-                            class="form-check-input"
-                            :checked="
-                              selectedUsers.length === users.length &&
-                              users.length > 0
-                            "
-                            @change="toggleSelectAll"
-                          />
-                        </th>
-                        <th>User</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
-                        <th>Created</th>
-                        <th width="150">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-if="loading">
-                        <td colspan="7" class="text-center py-4">
-                          <div
-                            class="spinner-border text-primary"
-                            role="status"
-                          >
-                            <span class="visually-hidden">Loading...</span>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr v-else-if="users.length === 0">
-                        <td colspan="7" class="text-center py-4 text-muted">
-                          <i class="fas fa-users fa-3x mb-3 d-block"></i>
-                          No users found
-                        </td>
-                      </tr>
-                      <tr v-else v-for="user in users" :key="user.id">
-                        <td>
-                          <input
-                            type="checkbox"
-                            class="form-check-input"
-                            :checked="selectedUsers.includes(user.id)"
-                            @change="toggleUserSelection(user.id)"
-                          />
-                        </td>
-                        <td>
-                          <div class="d-flex align-items-center">
-                            <div class="avatar me-3">
-                              <i
-                                class="fas fa-user-circle fa-2x text-muted"
-                              ></i>
-                            </div>
-                            <div>
-                              <div class="fw-bold">
-                                {{ user.firstName }} {{ user.lastName }}
-                              </div>
-                              <div class="text-muted small">
-                                {{ user.email }}
-                              </div>
-                              <div class="text-muted small">
-                                @{{ user.username }}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            class="badge"
-                            :class="getRoleBadgeClass(user.role)"
-                          >
-                            {{ getRoleLabel(user.role) }}
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            class="badge"
-                            :class="user.isActive ? 'bg-success' : 'bg-danger'"
-                          >
-                            {{ user.isActive ? 'Active' : 'Inactive' }}
-                          </span>
-                        </td>
-                        <td>
-                          <span v-if="user.lastLoginAt" class="text-muted">
-                            {{ formatDate(user.lastLoginAt) }}
-                          </span>
-                          <span v-else class="text-muted">Never</span>
-                        </td>
-                        <td>
-                          <span class="text-muted">{{
-                            formatDate(user.createdAt)
-                          }}</span>
-                        </td>
-                        <td>
-                          <div class="btn-group btn-group-sm" role="group">
-                            <button
-                              class="btn btn-outline-primary"
-                              @click="viewUser(user)"
-                              title="View User"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-secondary"
-                              @click="editUser(user)"
-                              :disabled="!canEditUser(user)"
-                              title="Edit User"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-warning"
-                              @click="changeUserPassword(user)"
-                              :disabled="!canEditUser(user)"
-                              title="Change Password"
-                            >
-                              <i class="fas fa-key"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-danger"
-                              @click="deleteUser(user)"
-                              :disabled="!canDeleteUser(user)"
-                              title="Delete User"
-                            >
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div class="card-footer" v-if="pagination.totalPages > 1">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="text-muted">
-                    Showing
-                    {{ (pagination.page - 1) * pagination.limit + 1 }} to
-                    {{
-                      Math.min(
-                        pagination.page * pagination.limit,
-                        pagination.total
-                      )
-                    }}
-                    of {{ pagination.total }} users
-                  </div>
-                  <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                      <li
-                        class="page-item"
-                        :class="{ disabled: pagination.page === 1 }"
-                      >
-                        <button
-                          class="page-link"
-                          @click="changePage(pagination.page - 1)"
-                          :disabled="pagination.page === 1"
-                        >
-                          Previous
-                        </button>
-                      </li>
-                      <li
-                        v-for="page in visiblePages"
-                        :key="page"
-                        class="page-item"
-                        :class="{ active: page === pagination.page }"
-                      >
-                        <button class="page-link" @click="changePage(page)">
-                          {{ page }}
-                        </button>
-                      </li>
-                      <li
-                        class="page-item"
-                        :class="{
-                          disabled: pagination.page === pagination.totalPages,
-                        }"
-                      >
-                        <button
-                          class="page-link"
-                          @click="changePage(pagination.page + 1)"
-                          :disabled="pagination.page === pagination.totalPages"
-                        >
-                          Next
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
+    <!-- Stats Cards -->
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
+      v-if="stats"
+    >
+      <div
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-users text-blue-600 text-xl"></i>
             </div>
           </div>
+          <div class="ml-4">
+            <h3 class="text-2xl font-bold text-gray-900">
+              {{ stats.totalUsers }}
+            </h3>
+            <p class="text-gray-600">Total Users</p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-user-check text-green-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-2xl font-bold text-gray-900">
+              {{ stats.activeUsers }}
+            </h3>
+            <p class="text-gray-600">Active Users</p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-user-times text-red-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-2xl font-bold text-gray-900">
+              {{ stats.inactiveUsers }}
+            </h3>
+            <p class="text-gray-600">Inactive Users</p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-user-plus text-purple-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-2xl font-bold text-gray-900">
+              {{ stats.recentUsers.length }}
+            </h3>
+            <p class="text-gray-600">Recent Users</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-6">
+      <div class="card-body">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="form-label">Search Users</label>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                class="form-control pl-10"
+                placeholder="Search by name, email, or username..."
+                v-model="searchTerm"
+                @input="handleSearch"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Filter by Role</label>
+            <select
+              class="form-select"
+              v-model="selectedRole"
+              @change="handleRoleFilter"
+            >
+              <option value="">All Roles</option>
+              <option
+                v-for="role in userRoles"
+                :key="role.value"
+                :value="role.value"
+              >
+                {{ role.label }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Filter by Status</label>
+            <select
+              class="form-select"
+              v-model="selectedStatus"
+              @change="handleStatusFilter"
+            >
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">&nbsp;</label>
+            <button class="btn-outline-secondary w-full" @click="clearFilters">
+              <i class="fas fa-times mr-2"></i>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="card mb-6" v-if="selectedUsers.length > 0">
+      <div class="card-body">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600">
+            <i class="fas fa-check-circle mr-2"></i>
+            {{ selectedUsers.length }} user(s) selected
+          </span>
+          <div class="flex space-x-2">
+            <button
+              class="btn-primary text-sm px-3 py-1"
+              @click="bulkActivate"
+              :disabled="loading"
+            >
+              <i class="fas fa-user-check mr-1"></i>
+              Activate
+            </button>
+            <button
+              class="btn-outline-warning text-sm px-3 py-1"
+              @click="bulkDeactivate"
+              :disabled="loading"
+            >
+              <i class="fas fa-user-times mr-1"></i>
+              Deactivate
+            </button>
+            <button
+              class="btn-outline-secondary text-sm px-3 py-1"
+              @click="deselectAllUsers"
+            >
+              <i class="fas fa-times mr-1"></i>
+              Deselect All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="flex justify-between items-center">
+          <h5 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-users mr-2"></i>
+            Users ({{ pagination.total }})
+          </h5>
+          <div class="flex items-center space-x-3">
+            <button
+              class="btn-outline-primary text-sm px-3 py-1"
+              @click="selectAllUsers"
+              :disabled="users.length === 0"
+            >
+              <i class="fas fa-check-square mr-1"></i>
+              Select All
+            </button>
+            <div class="flex border border-gray-300 rounded-md">
+              <button
+                class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+                @click="changePageSize(10)"
+                :class="{
+                  'bg-primary-500 text-white': pagination.limit === 10,
+                }"
+              >
+                10
+              </button>
+              <button
+                class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+                @click="changePageSize(25)"
+                :class="{
+                  'bg-primary-500 text-white': pagination.limit === 25,
+                }"
+              >
+                25
+              </button>
+              <button
+                class="px-3 py-1 text-sm hover:bg-gray-50"
+                @click="changePageSize(50)"
+                :class="{
+                  'bg-primary-500 text-white': pagination.limit === 50,
+                }"
+              >
+                50
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="w-12">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="
+                    selectedUsers.length === users.length && users.length > 0
+                  "
+                  @change="toggleSelectAll"
+                />
+              </th>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Last Login</th>
+              <th>Created</th>
+              <th class="w-40">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading">
+              <td colspan="7" class="text-center py-8">
+                <div class="spinner-border text-primary-500" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-else-if="users.length === 0">
+              <td colspan="7" class="text-center py-8 text-gray-500">
+                <i class="fas fa-users text-4xl mb-4 block"></i>
+                No users found
+              </td>
+            </tr>
+            <tr
+              v-else
+              v-for="user in users"
+              :key="user.id"
+              class="hover:bg-gray-50"
+            >
+              <td>
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="selectedUsers.includes(user.id)"
+                  @change="toggleUserSelection(user.id)"
+                />
+              </td>
+              <td>
+                <div class="flex items-center">
+                  <div
+                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user-circle text-gray-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-900">
+                      {{ user.firstName }} {{ user.lastName }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ user.email }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      @{{ user.username }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" :class="getRoleBadgeClass(user.role)">
+                  {{ getRoleLabel(user.role) }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  :class="user.isActive ? 'bg-success' : 'bg-danger'"
+                >
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <span v-if="user.lastLoginAt" class="text-gray-500">
+                  {{ formatDate(user.lastLoginAt) }}
+                </span>
+                <span v-else class="text-gray-500">Never</span>
+              </td>
+              <td>
+                <span class="text-gray-500">{{
+                  formatDate(user.createdAt)
+                }}</span>
+              </td>
+              <td>
+                <div class="flex space-x-1">
+                  <button
+                    class="btn-outline-primary p-2"
+                    @click="viewUser(user)"
+                    title="View User"
+                  >
+                    <i class="fas fa-eye text-sm"></i>
+                  </button>
+                  <button
+                    class="btn-outline-secondary p-2"
+                    @click="editUser(user)"
+                    :disabled="!canEditUser(user)"
+                    title="Edit User"
+                  >
+                    <i class="fas fa-edit text-sm"></i>
+                  </button>
+                  <button
+                    class="btn-outline-warning p-2"
+                    @click="changeUserPassword(user)"
+                    :disabled="!canEditUser(user)"
+                    title="Change Password"
+                  >
+                    <i class="fas fa-key text-sm"></i>
+                  </button>
+                  <button
+                    class="btn-outline-danger p-2"
+                    @click="deleteUser(user)"
+                    :disabled="!canDeleteUser(user)"
+                    title="Delete User"
+                  >
+                    <i class="fas fa-trash text-sm"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer" v-if="pagination.totalPages > 1">
+        <div class="flex justify-between items-center">
+          <div class="text-gray-600">
+            Showing
+            {{ (pagination.page - 1) * pagination.limit + 1 }} to
+            {{ Math.min(pagination.page * pagination.limit, pagination.total) }}
+            of {{ pagination.total }} users
+          </div>
+          <nav>
+            <ul class="pagination">
+              <li
+                class="page-item"
+                :class="{ disabled: pagination.page === 1 }"
+              >
+                <button
+                  class="page-link"
+                  @click="changePage(pagination.page - 1)"
+                  :disabled="pagination.page === 1"
+                >
+                  Previous
+                </button>
+              </li>
+              <li
+                v-for="page in visiblePages"
+                :key="page"
+                class="page-item"
+                :class="{ active: page === pagination.page }"
+              >
+                <button class="page-link" @click="changePage(page)">
+                  {{ page }}
+                </button>
+              </li>
+              <li
+                class="page-item"
+                :class="{
+                  disabled: pagination.page === pagination.totalPages,
+                }"
+              >
+                <button
+                  class="page-link"
+                  @click="changePage(pagination.page + 1)"
+                  :disabled="pagination.page === pagination.totalPages"
+                >
+                  Next
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
@@ -460,7 +469,7 @@
       :user="selectedUser"
       @close="showViewModal = false"
     />
-  </div>
+  </MainLayout>
 </template>
 
 <script setup lang="ts">
@@ -472,9 +481,7 @@ import CreateUserModal from '@/components/CreateUserModal.vue';
 import EditUserModal from '@/components/EditUserModal.vue';
 import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
 import ViewUserModal from '@/components/ViewUserModal.vue';
-import AppSidebar from '@/components/AppSidebar.vue';
-import TopBar from '@/components/TopBar.vue';
-import '@/assets/css/views.css';
+import MainLayout from '@/components/MainLayout.vue';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();

@@ -3,19 +3,10 @@ import { createPinia } from 'pinia';
 import { createRouter, createWebHistory } from 'vue-router';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 import App from './App.vue';
 import { routes } from './router';
 import './assets/css/main.css';
-import './assets/css/sidebar.css';
-import './assets/css/page-header.css';
-import './assets/css/bulk-upload-modal.css';
-import './assets/css/change-password-modal.css';
-import './assets/css/create-user-modal.css';
-import './assets/css/edit-user-modal.css';
-import './assets/css/view-user-modal.css';
 
 const app = createApp(App);
 

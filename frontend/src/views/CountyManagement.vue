@@ -1,295 +1,250 @@
 <template>
-  <div class="county-management-page">
-    <!-- Top Navigation Bar -->
-    <TopBar />
+  <MainLayout
+    page-title="County Management"
+    page-subtitle="Manage counties and their information"
+  >
+    <!-- Error Alert -->
+    <div
+      v-if="countyManagementStore.error"
+      class="alert alert-danger alert-dismissible fade show"
+      role="alert"
+    >
+      <i class="fas fa-exclamation-circle me-2"></i>
+      {{ countyManagementStore.error }}
+      <button
+        type="button"
+        class="btn-close"
+        @click="countyManagementStore.clearError()"
+      ></button>
+    </div>
 
-    <!-- Main Content -->
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <AppSidebar />
-
-        <!-- Main Content Area -->
-        <div class="col-md-9 col-lg-10 main-content">
-          <div class="content-wrapper">
-            <!-- Page Header -->
-            <div class="page-header">
-              <h1 class="page-title">County Management</h1>
-              <p class="page-subtitle">Manage counties and their information</p>
-            </div>
-            <!-- Error Alert -->
-            <div
-              v-if="countyManagementStore.error"
-              class="alert alert-danger alert-dismissible fade show"
-              role="alert"
-            >
-              <i class="fas fa-exclamation-circle me-2"></i>
-              {{ countyManagementStore.error }}
-              <button
-                type="button"
-                class="btn-close"
-                @click="countyManagementStore.clearError()"
-              ></button>
-            </div>
-
-            <!-- Action Bar -->
-            <div class="action-bar">
-              <div class="row align-items-center">
-                <div class="col-md-4">
-                  <div class="search-box">
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-search"></i>
-                      </span>
-                      <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Search counties..."
-                        v-model="searchQuery"
-                        @input="handleSearch"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="page-size-selector">
-                    <label class="form-label me-2 mb-0">Show:</label>
-                    <select
-                      v-model="pageSize"
-                      @change="handlePageSizeChange"
-                      class="form-select form-select-sm"
-                      style="width: auto; display: inline-block"
-                    >
-                      <option value="10">10 per page</option>
-                      <option value="20">20 per page</option>
-                      <option value="50">50 per page</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-4 text-end">
-                  <button
-                    class="btn btn-primary"
-                    @click="showCreateModal = true"
-                    :disabled="countyManagementStore.loading"
-                  >
-                    <i class="fas fa-plus me-2"></i>
-                    Add County
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Counties Table -->
-            <div class="card">
-              <div class="card-header">
-                <h5 class="card-title mb-0">
-                  <i class="fas fa-map-marker-alt me-2"></i>
-                  Counties
-                  <span class="badge bg-primary ms-2">{{
-                    countyManagementStore.totalCounties
-                  }}</span>
-                </h5>
-              </div>
-              <div class="card-body p-0">
-                <div
-                  v-if="countyManagementStore.loading"
-                  class="text-center p-4"
-                >
-                  <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <p class="mt-2">Loading counties...</p>
-                </div>
-
-                <div
-                  v-else-if="!countyManagementStore.hasCounties"
-                  class="text-center p-4"
-                >
-                  <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                  <h5>No counties found</h5>
-                  <p class="text-muted">
-                    Get started by adding your first county.
-                  </p>
-                  <button
-                    class="btn btn-primary"
-                    @click="showCreateModal = true"
-                  >
-                    <i class="fas fa-plus me-2"></i>
-                    Add County
-                  </button>
-                </div>
-
-                <div v-else class="table-responsive">
-                  <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th @click="handleSort('code')" class="sortable">
-                          Code
-                          <i
-                            class="fas fa-sort ms-1"
-                            v-if="sortBy !== 'code'"
-                          ></i>
-                          <i
-                            class="fas fa-sort-up ms-1"
-                            v-else-if="sortOrder === 'asc'"
-                          ></i>
-                          <i class="fas fa-sort-down ms-1" v-else></i>
-                        </th>
-                        <th @click="handleSort('name')" class="sortable">
-                          Name
-                          <i
-                            class="fas fa-sort ms-1"
-                            v-if="sortBy !== 'name'"
-                          ></i>
-                          <i
-                            class="fas fa-sort-up ms-1"
-                            v-else-if="sortOrder === 'asc'"
-                          ></i>
-                          <i class="fas fa-sort-down ms-1" v-else></i>
-                        </th>
-                        <th>Constituencies</th>
-                        <th @click="handleSort('createdAt')" class="sortable">
-                          Created
-                          <i
-                            class="fas fa-sort ms-1"
-                            v-if="sortBy !== 'createdAt'"
-                          ></i>
-                          <i
-                            class="fas fa-sort-up ms-1"
-                            v-else-if="sortOrder === 'asc'"
-                          ></i>
-                          <i class="fas fa-sort-down ms-1" v-else></i>
-                        </th>
-                        <th width="120">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        v-for="county in countyManagementStore.filteredCounties"
-                        :key="county.id"
-                      >
-                        <td>
-                          <span class="badge bg-secondary">{{
-                            county.code
-                          }}</span>
-                        </td>
-                        <td>
-                          <strong>{{ county.name }}</strong>
-                        </td>
-                        <td>
-                          <span class="badge bg-info">{{
-                            county._count?.constituencies ?? 0
-                          }}</span>
-                        </td>
-                        <td>
-                          <small class="text-muted">
-                            {{ formatDate(county.createdAt) }}
-                          </small>
-                        </td>
-                        <td>
-                          <div class="btn-group btn-group-sm">
-                            <button
-                              class="btn btn-outline-primary"
-                              @click="viewCounty(county)"
-                              title="View Details"
-                            >
-                              <i class="fas fa-eye"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-warning"
-                              @click="editCounty(county)"
-                              title="Edit County"
-                            >
-                              <i class="fas fa-edit"></i>
-                            </button>
-                            <button
-                              class="btn btn-outline-danger"
-                              @click="deleteCounty(county)"
-                              :title="
-                                (county._count?.constituencies ?? 0) > 0
-                                  ? 'Cannot delete - has constituencies'
-                                  : 'Delete County'
-                              "
-                              :disabled="
-                                (county._count?.constituencies ?? 0) > 0
-                              "
-                            >
-                              <i class="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Pagination -->
-              <div
-                v-if="countyManagementStore.pagination.totalPages > 1"
-                class="card-footer"
-              >
-                <nav aria-label="Counties pagination">
-                  <ul
-                    class="pagination pagination-sm justify-content-center mb-0"
-                  >
-                    <li
-                      class="page-item"
-                      :class="{
-                        disabled: countyManagementStore.pagination.page === 1,
-                      }"
-                    >
-                      <button
-                        class="page-link"
-                        @click="
-                          changePage(countyManagementStore.pagination.page - 1)
-                        "
-                        :disabled="countyManagementStore.pagination.page === 1"
-                      >
-                        Previous
-                      </button>
-                    </li>
-
-                    <li
-                      v-for="page in visiblePages"
-                      :key="page"
-                      class="page-item"
-                      :class="{
-                        active: page === countyManagementStore.pagination.page,
-                      }"
-                    >
-                      <button class="page-link" @click="changePage(page)">
-                        {{ page }}
-                      </button>
-                    </li>
-
-                    <li
-                      class="page-item"
-                      :class="{
-                        disabled:
-                          countyManagementStore.pagination.page ===
-                          countyManagementStore.pagination.totalPages,
-                      }"
-                    >
-                      <button
-                        class="page-link"
-                        @click="
-                          changePage(countyManagementStore.pagination.page + 1)
-                        "
-                        :disabled="
-                          countyManagementStore.pagination.page ===
-                          countyManagementStore.pagination.totalPages
-                        "
-                      >
-                        Next
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="row align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-search"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search counties..."
+                v-model="searchQuery"
+                @input="handleSearch"
+              />
             </div>
           </div>
         </div>
+        <div class="col-md-4">
+          <div class="page-size-selector">
+            <label class="form-label me-2 mb-0">Show:</label>
+            <select
+              v-model="pageSize"
+              @change="handlePageSizeChange"
+              class="form-select form-select-sm"
+              style="width: auto; display: inline-block"
+            >
+              <option value="10">10 per page</option>
+              <option value="20">20 per page</option>
+              <option value="50">50 per page</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4 text-end">
+          <button
+            class="btn btn-primary"
+            @click="showCreateModal = true"
+            :disabled="countyManagementStore.loading"
+          >
+            <i class="fas fa-plus me-2"></i>
+            Add County
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counties Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-map-marker-alt me-2"></i>
+          Counties
+          <span class="badge bg-primary ms-2">{{
+            countyManagementStore.totalCounties
+          }}</span>
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div v-if="countyManagementStore.loading" class="text-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading counties...</p>
+        </div>
+
+        <div
+          v-else-if="!countyManagementStore.hasCounties"
+          class="text-center p-4"
+        >
+          <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+          <h5>No counties found</h5>
+          <p class="text-muted">Get started by adding your first county.</p>
+          <button class="btn btn-primary" @click="showCreateModal = true">
+            <i class="fas fa-plus me-2"></i>
+            Add County
+          </button>
+        </div>
+
+        <div v-else class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th @click="handleSort('code')" class="sortable">
+                  Code
+                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'code'"></i>
+                  <i
+                    class="fas fa-sort-up ms-1"
+                    v-else-if="sortOrder === 'asc'"
+                  ></i>
+                  <i class="fas fa-sort-down ms-1" v-else></i>
+                </th>
+                <th @click="handleSort('name')" class="sortable">
+                  Name
+                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'name'"></i>
+                  <i
+                    class="fas fa-sort-up ms-1"
+                    v-else-if="sortOrder === 'asc'"
+                  ></i>
+                  <i class="fas fa-sort-down ms-1" v-else></i>
+                </th>
+                <th>Constituencies</th>
+                <th @click="handleSort('createdAt')" class="sortable">
+                  Created
+                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'createdAt'"></i>
+                  <i
+                    class="fas fa-sort-up ms-1"
+                    v-else-if="sortOrder === 'asc'"
+                  ></i>
+                  <i class="fas fa-sort-down ms-1" v-else></i>
+                </th>
+                <th width="120">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="county in countyManagementStore.filteredCounties"
+                :key="county.id"
+              >
+                <td>
+                  <span class="badge bg-secondary">{{ county.code }}</span>
+                </td>
+                <td>
+                  <strong>{{ county.name }}</strong>
+                </td>
+                <td>
+                  <span class="badge bg-info">{{
+                    county._count?.constituencies ?? 0
+                  }}</span>
+                </td>
+                <td>
+                  <small class="text-muted">
+                    {{ formatDate(county.createdAt) }}
+                  </small>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button
+                      class="btn btn-outline-primary"
+                      @click="viewCounty(county)"
+                      title="View Details"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-warning"
+                      @click="editCounty(county)"
+                      title="Edit County"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-danger"
+                      @click="deleteCounty(county)"
+                      :title="
+                        (county._count?.constituencies ?? 0) > 0
+                          ? 'Cannot delete - has constituencies'
+                          : 'Delete County'
+                      "
+                      :disabled="(county._count?.constituencies ?? 0) > 0"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="countyManagementStore.pagination.totalPages > 1"
+        class="card-footer"
+      >
+        <nav aria-label="Counties pagination">
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+            <li
+              class="page-item"
+              :class="{
+                disabled: countyManagementStore.pagination.page === 1,
+              }"
+            >
+              <button
+                class="page-link"
+                @click="changePage(countyManagementStore.pagination.page - 1)"
+                :disabled="countyManagementStore.pagination.page === 1"
+              >
+                Previous
+              </button>
+            </li>
+
+            <li
+              v-for="page in visiblePages"
+              :key="page"
+              class="page-item"
+              :class="{
+                active: page === countyManagementStore.pagination.page,
+              }"
+            >
+              <button class="page-link" @click="changePage(page)">
+                {{ page }}
+              </button>
+            </li>
+
+            <li
+              class="page-item"
+              :class="{
+                disabled:
+                  countyManagementStore.pagination.page ===
+                  countyManagementStore.pagination.totalPages,
+              }"
+            >
+              <button
+                class="page-link"
+                @click="changePage(countyManagementStore.pagination.page + 1)"
+                :disabled="
+                  countyManagementStore.pagination.page ===
+                  countyManagementStore.pagination.totalPages
+                "
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
 
@@ -517,7 +472,7 @@
       v-if="showCreateModal || showEditModal || showViewModal"
       class="modal-backdrop fade show"
     ></div>
-  </div>
+  </MainLayout>
 </template>
 
 <script setup lang="ts">
@@ -525,9 +480,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useCountyManagementStore } from '@/stores/countyManagement';
 import type { County } from '@/services/countyService';
-import AppSidebar from '@/components/AppSidebar.vue';
-import TopBar from '@/components/TopBar.vue';
-import '@/assets/css/views.css';
+import MainLayout from '@/components/MainLayout.vue';
 
 const authStore = useAuthStore();
 const countyManagementStore = useCountyManagementStore();

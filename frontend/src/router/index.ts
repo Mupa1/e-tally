@@ -9,7 +9,8 @@ const UserManagement = () => import('@/views/UserManagement.vue');
 const CountyManagement = () => import('@/views/CountyManagement.vue');
 const ConstituencyManagement = () =>
   import('@/views/ConstituencyManagement.vue');
-const ElectionManagement = () => import('@/views/ElectionManagement.vue');
+const PollingStationManagement = () =>
+  import('@/views/PollingStationManagement.vue');
 const UploadErrors = () => import('@/views/UploadErrors.vue');
 
 export const routes: RouteRecordRaw[] = [
@@ -53,10 +54,10 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'Constituency Management - e-Tally' },
   },
   {
-    path: '/election-management',
-    name: 'ElectionManagement',
-    component: ElectionManagement,
-    meta: { requiresAuth: true, title: 'Election Management - e-Tally' },
+    path: '/pollingstation',
+    name: 'PollingStationManagement',
+    component: PollingStationManagement,
+    meta: { requiresAuth: true, title: 'Polling Station Management - e-Tally' },
   },
   {
     path: '/upload-errors',
@@ -64,6 +65,7 @@ export const routes: RouteRecordRaw[] = [
     component: UploadErrors,
     meta: { requiresAuth: true, title: 'Upload Errors - e-Tally' },
   },
+  // Catch-all route must be last
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
