@@ -67,23 +67,23 @@
                         <li v-for="item in navigation" :key="item.name">
                           <router-link
                             :to="item.href"
-                            class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                            :class="
+                            :class="[
+                              'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold items-center',
                               item.current
                                 ? 'bg-gray-50 text-indigo-600'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600'
-                            "
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                            ]"
                           >
                             <i
                               :class="[
+                                'shrink-0 w-6 flex items-center justify-center',
                                 item.current
                                   ? 'text-indigo-600'
                                   : 'text-gray-400 group-hover:text-indigo-600',
-                                'size-6 shrink-0',
                                 item.icon,
                               ]"
                               aria-hidden="true"
-                            />
+                            ></i>
                             {{ item.name }}
                           </router-link>
                         </li>
@@ -92,10 +92,10 @@
                     <li class="mt-auto">
                       <a
                         href="#"
-                        class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                        class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 items-center"
                       >
                         <i
-                          class="fas fa-cog size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+                          class="fas fa-cog text-gray-400 group-hover:text-indigo-600 shrink-0 w-6 flex items-center justify-center"
                           aria-hidden="true"
                         />
                         Settings
@@ -129,23 +129,23 @@
                 <li v-for="item in navigation" :key="item.name">
                   <router-link
                     :to="item.href"
-                    class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-                    :class="
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold items-center',
                       item.current
                         ? 'bg-gray-50 text-indigo-600'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600'
-                    "
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
                   >
                     <i
                       :class="[
+                        'shrink-0 w-6 flex items-center justify-center',
                         item.current
                           ? 'text-indigo-600'
                           : 'text-gray-400 group-hover:text-indigo-600',
-                        'size-6 shrink-0',
                         item.icon,
                       ]"
                       aria-hidden="true"
-                    />
+                    ></i>
                     {{ item.name }}
                   </router-link>
                 </li>
@@ -154,10 +154,10 @@
             <li class="mt-auto">
               <a
                 href="#"
-                class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 items-center"
               >
                 <i
-                  class="fas fa-cog size-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+                  class="fas fa-cog shrink-0 w-6 flex items-center justify-center text-gray-400 group-hover:text-indigo-600"
                   aria-hidden="true"
                 />
                 Settings
@@ -253,6 +253,12 @@
 import { defineProps, ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRoute } from 'vue-router';
+import {
+  Dialog,
+  DialogPanel,
+  TransitionChild,
+  TransitionRoot,
+} from '@headlessui/vue';
 
 // Props for page header
 defineProps<{
@@ -266,36 +272,46 @@ const user = authStore.user;
 const sidebarOpen = ref(false);
 
 // Navigation items
-const navigation = [
+const navigationData = [
   {
     name: 'Dashboard',
     href: '/dashboard',
     icon: 'fas fa-tachometer-alt',
-    current: computed(() => route.name === 'Dashboard'),
   },
   {
     name: 'User Management',
     href: '/users',
     icon: 'fas fa-users',
-    current: computed(() => route.name === 'UserManagement'),
   },
   {
     name: 'County Management',
     href: '/counties',
     icon: 'fas fa-map-marker-alt',
-    current: computed(() => route.name === 'CountyManagement'),
   },
   {
     name: 'Constituency Management',
     href: '/constituencies',
     icon: 'fas fa-landmark',
-    current: computed(() => route.name === 'ConstituencyManagement'),
   },
   {
     name: 'Polling Station Management',
     href: '/pollingstation',
     icon: 'fas fa-poll',
-    current: computed(() => route.name === 'PollingStationManagement'),
   },
 ];
+
+const navigation = computed(() =>
+  navigationData.map((item) => ({
+    ...item,
+    current:
+      route.name === item.name.replace(/\s+/g, '') ||
+      (item.href === '/dashboard' && route.name === 'Dashboard') ||
+      (item.href === '/users' && route.name === 'UserManagement') ||
+      (item.href === '/counties' && route.name === 'CountyManagement') ||
+      (item.href === '/constituencies' &&
+        route.name === 'ConstituencyManagement') ||
+      (item.href === '/pollingstation' &&
+        route.name === 'PollingStationManagement'),
+  }))
+);
 </script>
