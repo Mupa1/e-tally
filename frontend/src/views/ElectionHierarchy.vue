@@ -1,7 +1,7 @@
 <template>
   <MainLayout
-    page-title="Polling Station Management"
-    page-subtitle="Manage polling stations and their information"
+    page-title="Election Hierarchy Overview"
+    page-subtitle="Comprehensive view of the entire election structure and data"
   >
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
@@ -63,33 +63,33 @@
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0">
-            <i class="fas fa-bolt mr-2"></i>
-            Quick Actions
+            <i class="fas fa-sitemap mr-2"></i>
+            Election Hierarchy Management
           </h5>
         </div>
         <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <router-link
               to="/counties"
               class="btn-outline-primary w-full text-center"
             >
               <i class="fas fa-map-marker-alt mr-2"></i>
-              Manage Counties
+              Counties
             </router-link>
             <router-link
               to="/constituencies"
               class="btn-outline-success w-full text-center"
             >
-              <i class="fas fa-map mr-2"></i>
-              Manage Constituencies
+              <i class="fas fa-landmark mr-2"></i>
+              Constituencies
             </router-link>
             <a href="#" class="btn-outline-info w-full text-center">
               <i class="fas fa-building mr-2"></i>
-              Manage Wards
+              Wards (CAW)
             </a>
             <a href="#" class="btn-outline-warning w-full text-center">
               <i class="fas fa-poll mr-2"></i>
-              Manage Polling Stations
+              Polling Stations
             </a>
           </div>
         </div>
@@ -98,12 +98,12 @@
 
     <!-- Data Overview -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Recent Counties -->
+      <!-- Hierarchy Structure -->
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0">
-            <i class="fas fa-map-marker-alt mr-2"></i>
-            Recent Counties
+            <i class="fas fa-sitemap mr-2"></i>
+            Hierarchy Structure
           </h5>
         </div>
         <div class="card-body">
@@ -116,126 +116,219 @@
             v-else-if="recentCounties.length === 0"
             class="text-center py-3 text-gray-500"
           >
-            No counties found
+            No data available
           </div>
-          <div v-else class="space-y-3">
-            <div
-              v-for="county in recentCounties"
-              :key="county.id"
-              class="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0"
-            >
-              <div>
-                <h6 class="text-sm font-semibold mb-1">{{ county.name }}</h6>
-                <small class="text-gray-500">Code: {{ county.code }}</small>
+          <div v-else class="space-y-4">
+            <div class="hierarchy-level">
+              <div class="flex items-center mb-2">
+                <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                <span class="font-semibold text-gray-700">Counties</span>
+                <span
+                  class="ml-auto badge bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+                >
+                  {{ stats.counties }}
+                </span>
               </div>
-              <span
-                class="badge bg-blue-500 text-white px-2 py-1 rounded-full text-xs"
-              >
-                {{ county.constituenciesCount }} constituencies
-              </span>
+              <div class="ml-6 space-y-2">
+                <div class="hierarchy-item">
+                  <i class="fas fa-landmark text-green-500 mr-2"></i>
+                  <span class="text-sm text-gray-600">Constituencies</span>
+                  <span class="ml-auto text-xs text-gray-500">{{
+                    stats.constituencies
+                  }}</span>
+                </div>
+                <div class="hierarchy-item">
+                  <i class="fas fa-building text-purple-500 mr-2"></i>
+                  <span class="text-sm text-gray-600">Wards (CAW)</span>
+                  <span class="ml-auto text-xs text-gray-500">{{
+                    stats.wards
+                  }}</span>
+                </div>
+                <div class="hierarchy-item">
+                  <i class="fas fa-poll text-orange-500 mr-2"></i>
+                  <span class="text-sm text-gray-600">Polling Stations</span>
+                  <span class="ml-auto text-xs text-gray-500">{{
+                    stats.pollingStations
+                  }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- System Status -->
+      <!-- Data Completeness -->
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0">
-            <i class="fas fa-server mr-2"></i>
-            System Status
+            <i class="fas fa-chart-pie mr-2"></i>
+            Data Completeness
           </h5>
         </div>
         <div class="card-body">
-          <div class="space-y-3">
-            <div class="status-item">
-              <div class="flex items-center">
-                <div class="status-indicator status-online"></div>
-                <span>Database Connection</span>
+          <div class="space-y-4">
+            <div class="completeness-item">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700">Counties</span>
+                <span class="text-sm text-gray-500"
+                  >{{ stats.countiesWithData }}/{{ stats.counties }}</span
+                >
               </div>
-              <span class="status-value">Online</span>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  class="bg-blue-500 h-2 rounded-full"
+                  :style="{
+                    width: `${
+                      (stats.countiesWithData / stats.counties) * 100
+                    }%`,
+                  }"
+                ></div>
+              </div>
             </div>
-            <div class="status-item">
-              <div class="flex items-center">
-                <div class="status-indicator status-online"></div>
-                <span>API Services</span>
+            <div class="completeness-item">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700"
+                  >Constituencies</span
+                >
+                <span class="text-sm text-gray-500"
+                  >{{ stats.constituenciesWithData }}/{{
+                    stats.constituencies
+                  }}</span
+                >
               </div>
-              <span class="status-value">Running</span>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  class="bg-green-500 h-2 rounded-full"
+                  :style="{
+                    width: `${
+                      (stats.constituenciesWithData / stats.constituencies) *
+                      100
+                    }%`,
+                  }"
+                ></div>
+              </div>
             </div>
-            <div class="status-item">
-              <div class="flex items-center">
-                <div class="status-indicator status-warning"></div>
-                <span>Data Sync</span>
+            <div class="completeness-item">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700"
+                  >Wards (CAW)</span
+                >
+                <span class="text-sm text-gray-500"
+                  >{{ stats.wardsWithData }}/{{ stats.wards }}</span
+                >
               </div>
-              <span class="status-value">Pending</span>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  class="bg-purple-500 h-2 rounded-full"
+                  :style="{
+                    width: `${(stats.wardsWithData / stats.wards) * 100}%`,
+                  }"
+                ></div>
+              </div>
             </div>
-            <div class="status-item">
-              <div class="flex items-center">
-                <div class="status-indicator status-online"></div>
-                <span>Backup System</span>
+            <div class="completeness-item">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-700"
+                  >Polling Stations</span
+                >
+                <span class="text-sm text-gray-500"
+                  >{{ stats.pollingStationsWithData }}/{{
+                    stats.pollingStations
+                  }}</span
+                >
               </div>
-              <span class="status-value">Active</span>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  class="bg-orange-500 h-2 rounded-full"
+                  :style="{
+                    width: `${
+                      (stats.pollingStationsWithData / stats.pollingStations) *
+                      100
+                    }%`,
+                  }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Data Management Tools -->
+    <!-- Election Hierarchy Tools -->
     <div class="mt-6">
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0">
-            <i class="fas fa-tools mr-2"></i>
-            Data Management Tools
+            <i class="fas fa-cogs mr-2"></i>
+            Election Hierarchy Tools
           </h5>
         </div>
         <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button class="btn-primary w-full" @click="openBulkUpload">
               <i class="fas fa-upload mr-2"></i>
               Bulk Upload Data
             </button>
             <button class="btn-success w-full" @click="exportData">
               <i class="fas fa-download mr-2"></i>
-              Export All Data
+              Export Hierarchy
             </button>
             <button class="btn-warning w-full" @click="validateData">
               <i class="fas fa-check-circle mr-2"></i>
-              Validate Data
+              Validate Structure
             </button>
             <button class="btn-info w-full" @click="refreshData">
               <i class="fas fa-sync-alt mr-2"></i>
-              Refresh Stats
+              Refresh Overview
             </button>
           </div>
 
-          <!-- Upload Instructions -->
+          <!-- Hierarchy Information -->
           <div class="mt-6">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h6 class="text-blue-800 font-semibold mb-2">
+            <div
+              class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4"
+            >
+              <h6 class="text-blue-800 font-semibold mb-3">
                 <i class="fas fa-info-circle mr-2"></i>
-                Bulk Upload Instructions
+                Election Hierarchy Structure
               </h6>
-              <p class="text-blue-700 mb-2">
-                Use the <strong>Bulk Upload Data</strong> button to upload
-                election data from a CSV file. The system supports hierarchical
-                uploads that will automatically create:
+              <p class="text-blue-700 mb-3">
+                The election hierarchy follows a structured approach from the
+                highest administrative level down to individual polling
+                stations:
               </p>
-              <ul class="text-blue-700 space-y-1">
-                <li><strong>Counties</strong> - Administrative regions</li>
-                <li>
-                  <strong>Constituencies</strong> - Electoral areas within
-                  counties
-                </li>
-                <li>
-                  <strong>Wards (CAWs)</strong> - Smaller administrative units
-                </li>
-                <li>
-                  <strong>Polling Stations</strong> - Individual voting
-                  locations
-                </li>
-              </ul>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <div class="flex items-center text-blue-700">
+                    <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                    <span class="font-medium">Counties</span>
+                    <span class="ml-auto text-sm"
+                      >{{ stats.counties }} total</span
+                    >
+                  </div>
+                  <div class="flex items-center text-blue-700">
+                    <i class="fas fa-landmark mr-2 text-green-500"></i>
+                    <span class="font-medium">Constituencies</span>
+                    <span class="ml-auto text-sm"
+                      >{{ stats.constituencies }} total</span
+                    >
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center text-blue-700">
+                    <i class="fas fa-building mr-2 text-purple-500"></i>
+                    <span class="font-medium">Wards (CAW)</span>
+                    <span class="ml-auto text-sm">{{ stats.wards }} total</span>
+                  </div>
+                  <div class="flex items-center text-blue-700">
+                    <i class="fas fa-poll mr-2 text-orange-500"></i>
+                    <span class="font-medium">Polling Stations</span>
+                    <span class="ml-auto text-sm"
+                      >{{ stats.pollingStations }} total</span
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -497,5 +590,29 @@ onMounted(() => {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.hierarchy-level {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 1rem;
+}
+
+.hierarchy-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.hierarchy-item:last-child {
+  border-bottom: none;
+}
+
+.completeness-item {
+  margin-bottom: 1rem;
+}
+
+.completeness-item:last-child {
+  margin-bottom: 0;
 }
 </style>

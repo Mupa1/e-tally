@@ -9,8 +9,7 @@ const UserManagement = () => import('@/views/UserManagement.vue');
 const CountyManagement = () => import('@/views/CountyManagement.vue');
 const ConstituencyManagement = () =>
   import('@/views/ConstituencyManagement.vue');
-const PollingStationManagement = () =>
-  import('@/views/PollingStationManagement.vue');
+const ElectionHierarchy = () => import('@/views/ElectionHierarchy.vue');
 const UploadErrors = () => import('@/views/UploadErrors.vue');
 
 export const routes: RouteRecordRaw[] = [
@@ -56,8 +55,17 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/pollingstation',
     name: 'PollingStationManagement',
-    component: PollingStationManagement,
+    component: ElectionHierarchy,
     meta: { requiresAuth: true, title: 'Polling Station Management - e-Tally' },
+  },
+  {
+    path: '/election-hierarchy/overview',
+    name: 'ElectionHierarchyOverview',
+    component: ElectionHierarchy,
+    meta: {
+      requiresAuth: true,
+      title: 'Election Hierarchy Overview - e-Tally',
+    },
   },
   {
     path: '/upload-errors',
