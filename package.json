@@ -44,6 +44,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
     "csv-parser": "^3.2.0",
     "csv-writer": "^1.6.0",
     "pdf-parse": "^1.1.1"

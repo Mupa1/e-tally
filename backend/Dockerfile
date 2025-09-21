@@ -4,8 +4,8 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
-# Install dependencies for native modules
-RUN apk add --no-cache make g++ openssl openssl-dev
+# Install dependencies for native modules and PostgreSQL client
+RUN apk add --no-cache make g++ openssl openssl-dev postgresql-client
 
 # Copy package files
 COPY package*.json ./
@@ -16,6 +16,11 @@ RUN npm install
 
 # Copy source code
 COPY . .
+
+# Copy and make scripts executable
+COPY init-app.sh start.sh ./
+RUN chmod +x init-app.sh start.sh && \
+    ls -la *.sh
 
 # Generate Prisma client
 RUN npx prisma generate
