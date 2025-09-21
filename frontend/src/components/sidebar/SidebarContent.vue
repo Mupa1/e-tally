@@ -101,16 +101,62 @@
           </ul>
         </li>
         <li class="mt-auto">
-          <a
-            href="#"
-            class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 items-center"
-          >
-            <i
-              class="fas fa-cog text-gray-400 group-hover:text-indigo-600 shrink-0 w-6 flex items-center justify-center"
-              aria-hidden="true"
-            />
-            Settings
-          </a>
+          <div>
+            <button
+              @click="toggleExpanded('Settings')"
+              :class="[
+                'group flex w-full gap-x-3 rounded-md p-2 text-sm/6 font-semibold items-center justify-between',
+                expandedItems['Settings']
+                  ? 'bg-gray-50 text-indigo-600'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600',
+              ]"
+            >
+              <div class="flex gap-x-3 items-center">
+                <i
+                  :class="[
+                    'shrink-0 w-6 flex items-center justify-center',
+                    expandedItems['Settings']
+                      ? 'text-indigo-600'
+                      : 'text-gray-400 group-hover:text-indigo-600',
+                    'fas fa-cog',
+                  ]"
+                  aria-hidden="true"
+                ></i>
+                Settings
+              </div>
+              <i
+                :class="[
+                  'fas fa-chevron-down text-xs transition-transform duration-200',
+                  expandedItems['Settings'] ? 'rotate-180' : '',
+                ]"
+              ></i>
+            </button>
+
+            <!-- Settings submenu items -->
+            <div v-if="expandedItems['Settings']" class="ml-6 mt-1 space-y-1">
+              <router-link
+                to="/data-management"
+                :class="[
+                  'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                  $route.name === 'DataManagement'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                ]"
+              >
+                <i
+                  :class="[
+                    'shrink-0 w-4 flex items-center justify-center',
+                    $route.name === 'DataManagement'
+                      ? 'text-indigo-600'
+                      : 'text-gray-400 group-hover:text-indigo-600',
+                    'fas fa-database',
+                  ]"
+                  aria-hidden="true"
+                ></i>
+                Data Management
+              </router-link>
+            </div>
+          </div>
         </li>
       </ul>
     </nav>

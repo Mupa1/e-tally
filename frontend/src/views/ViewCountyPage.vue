@@ -60,6 +60,41 @@
         </div>
       </div>
 
+      <!-- Statistics Cards -->
+      <StatisticsGrid :columns="4" :gap="'lg'" :padding="'none'">
+        <StatisticsCardCompact
+          name="Total Constituencies"
+          :value="county._count?.constituencies || 0"
+          icon="fas fa-landmark"
+          color="blue"
+          format="number"
+        />
+        <StatisticsCardCompact
+          name="Total Wards"
+          :value="statsLoading ? 'Loading...' : totalWards"
+          icon="fas fa-building"
+          color="green"
+          format="number"
+          :loading="statsLoading"
+        />
+        <StatisticsCardCompact
+          name="Polling Stations"
+          :value="statsLoading ? 'Loading...' : totalPollingStations"
+          icon="fas fa-poll"
+          color="purple"
+          format="number"
+          :loading="statsLoading"
+        />
+        <StatisticsCardCompact
+          name="Registered Voters"
+          :value="statsLoading ? 'Loading...' : totalRegisteredVoters"
+          icon="fas fa-users"
+          color="orange"
+          format="number"
+          :loading="statsLoading"
+        />
+      </StatisticsGrid>
+
       <!-- County Information Card -->
       <div
         class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
@@ -335,6 +370,10 @@ import { useCountyManagementStore } from '@/stores/countyManagement';
 import { useAuthStore } from '@/stores/auth';
 import type { County } from '@/services/countyService';
 import MainLayout from '@/components/MainLayout.vue';
+import {
+  StatisticsGrid,
+  StatisticsCardCompact,
+} from '@/components/statistics-card';
 
 const route = useRoute();
 const router = useRouter();
@@ -348,6 +387,12 @@ const error = ref<string | null>(null);
 const isEditingName = ref(false);
 const editingName = ref('');
 const nameInput = ref<HTMLInputElement | null>(null);
+
+// Statistics data
+const totalWards = ref(0);
+const totalPollingStations = ref(0);
+const totalRegisteredVoters = ref(0);
+const statsLoading = ref(false);
 
 // Computed
 const canEditCounty = computed(() => {
@@ -378,11 +423,50 @@ const loadCounty = async () => {
     }
 
     county.value = foundCounty;
+
+    // Load statistics after county is loaded
+    await loadCountyStatistics(countyId);
   } catch (err) {
     error.value = 'Failed to load county details';
     console.error('Error loading county:', err);
   } finally {
     loading.value = false;
+  }
+};
+
+const loadCountyStatistics = async (countyId: string) => {
+  try {
+    statsLoading.value = true;
+
+    // Fetch county-specific statistics
+    const response = await fetch(`/api/counties/${countyId}/stats`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      totalWards.value = data.data?.totalWards || 0;
+      totalPollingStations.value = data.data?.totalPollingStations || 0;
+      totalRegisteredVoters.value = data.data?.totalRegisteredVoters || 0;
+    } else {
+      console.warn('Failed to load county statistics, using default values');
+      // Set default values if stats endpoint doesn't exist yet
+      totalWards.value = 0;
+      totalPollingStations.value = 0;
+      totalRegisteredVoters.value = 0;
+    }
+  } catch (err) {
+    console.warn('Error loading county statistics:', err);
+    // Set default values on error
+    totalWards.value = 0;
+    totalPollingStations.value = 0;
+    totalRegisteredVoters.value = 0;
+  } finally {
+    statsLoading.value = false;
   }
 };
 

@@ -85,6 +85,12 @@ export const routes: RouteRecordRaw[] = [
     component: UploadErrors,
     meta: { requiresAuth: true, title: 'Upload Errors - e-Tally' },
   },
+  {
+    path: '/data-management',
+    name: 'DataManagement',
+    component: () => import('@/views/DataManagement.vue'),
+    meta: { requiresAuth: true, title: 'Data Management - e-Tally' },
+  },
   // Catch-all route must be last
   {
     path: '/:pathMatch(.*)*',
