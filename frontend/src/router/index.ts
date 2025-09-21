@@ -47,6 +47,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'County Management - e-Tally' },
   },
   {
+    path: '/counties/:id',
+    name: 'ViewCounty',
+    component: () => import('@/views/ViewCountyPage.vue'),
+    meta: { requiresAuth: true, title: 'County Details - e-Tally' },
+  },
+  {
     path: '/constituencies',
     name: 'ConstituencyManagement',
     component: ConstituencyManagement,
