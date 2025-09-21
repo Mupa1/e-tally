@@ -3,60 +3,77 @@
     page-title="Election Hierarchy Overview"
     page-subtitle="Comprehensive view of the entire election structure and data"
   >
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-      <div class="stat-card">
-        <div class="stat-icon counties">
-          <i class="fas fa-map-marker-alt"></i>
-        </div>
-        <div class="stat-content">
-          <h3>{{ stats.counties }}</h3>
-          <p>Counties</p>
-          <small class="text-gray-500"
-            >{{ stats.countiesWithData }} with data</small
-          >
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon constituencies">
-          <i class="fas fa-map"></i>
-        </div>
-        <div class="stat-content">
-          <h3>{{ stats.constituencies }}</h3>
-          <p>Constituencies</p>
-          <small class="text-gray-500"
-            >{{ stats.constituenciesWithData }} with data</small
-          >
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon wards">
-          <i class="fas fa-building"></i>
-        </div>
-        <div class="stat-content">
-          <h3>{{ stats.wards }}</h3>
-          <p>Wards (CAWs)</p>
-          <small class="text-gray-500"
-            >{{ stats.wardsWithData }} with data</small
-          >
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon polling-stations">
-          <i class="fas fa-poll"></i>
-        </div>
-        <div class="stat-content">
-          <h3>{{ stats.pollingStations }}</h3>
-          <p>Polling Stations</p>
-          <small class="text-gray-500"
-            >{{ stats.pollingStationsWithData }} with data</small
-          >
-        </div>
+    <!-- Error Alert -->
+    <div
+      v-if="statsStore.error"
+      class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4"
+    >
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+        <span class="text-red-800 font-medium">{{ statsStore.error }}</span>
+        <button
+          type="button"
+          @click="statsStore.clearError()"
+          class="ml-auto text-red-400 hover:text-red-600 transition-colors duration-200"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
       </div>
     </div>
+
+    <!-- Statistics Cards -->
+    <StatisticsGrid
+      title="Election Hierarchy Overview"
+      :columns="5"
+      gap="lg"
+      padding="none"
+      class="mb-6"
+    >
+      <StatisticsCardCompact
+        name="Counties"
+        :value="stats.counties"
+        format="number"
+        icon="fas fa-map-marker-alt"
+        color="blue"
+        :subtitle="`${stats.countiesWithData} with data`"
+        :loading="statsStore.loading"
+      />
+      <StatisticsCardCompact
+        name="Constituencies"
+        :value="stats.constituencies"
+        format="number"
+        icon="fas fa-landmark"
+        color="green"
+        :subtitle="`${stats.constituenciesWithData} with data`"
+        :loading="statsStore.loading"
+      />
+      <StatisticsCardCompact
+        name="Wards (CAWs)"
+        :value="stats.wards"
+        format="number"
+        icon="fas fa-building"
+        color="purple"
+        :subtitle="`${stats.wardsWithData} with data`"
+        :loading="statsStore.loading"
+      />
+      <StatisticsCardCompact
+        name="Polling Stations"
+        :value="stats.pollingStations"
+        format="number"
+        icon="fas fa-poll"
+        color="orange"
+        :subtitle="`${stats.pollingStationsWithData} with data`"
+        :loading="statsStore.loading"
+      />
+      <StatisticsCardCompact
+        name="Registered Voters"
+        :value="stats.totalRegisteredVoters"
+        format="number"
+        icon="fas fa-users"
+        color="pink"
+        :loading="statsStore.loading"
+      />
+    </StatisticsGrid>
 
     <!-- Quick Actions -->
     <div class="mb-6">
@@ -107,13 +124,13 @@
           </h5>
         </div>
         <div class="card-body">
-          <div v-if="loading.counties" class="text-center py-3">
+          <div v-if="statsStore.loading" class="text-center py-3">
             <div class="spinner" role="status">
               <span class="sr-only">Loading...</span>
             </div>
           </div>
           <div
-            v-else-if="recentCounties.length === 0"
+            v-else-if="!statsStore.hierarchyStats"
             class="text-center py-3 text-gray-500"
           >
             No data available
@@ -297,21 +314,18 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { useCountyManagementStore } from '@/stores/countyManagement';
+import { useStatsStore } from '@/stores/stats';
 import BulkUploadModal from '@/components/pages/election-hirarchy/BulkUploadModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
+import {
+  StatisticsGrid,
+  StatisticsCardCompact,
+} from '@/components/statistics-card';
 
 const authStore = useAuthStore();
-const countyManagementStore = useCountyManagementStore();
+const statsStore = useStatsStore();
 
 // Reactive data
-const loading = ref({
-  counties: false,
-  constituencies: false,
-  wards: false,
-  pollingStations: false,
-});
-
 const stats = ref({
   counties: 0,
   countiesWithData: 0,
@@ -321,9 +335,8 @@ const stats = ref({
   wardsWithData: 0,
   pollingStations: 0,
   pollingStationsWithData: 0,
+  totalRegisteredVoters: 0,
 });
-
-const recentCounties = ref<any[]>([]);
 const bulkUploadModalRef = ref<InstanceType<typeof BulkUploadModal> | null>(
   null
 );
@@ -338,28 +351,21 @@ const refreshData = async () => {
 
 const fetchStats = async () => {
   try {
-    loading.value.counties = true;
+    // Fetch hierarchy statistics from the new endpoint
+    const hierarchyStats = await statsStore.fetchHierarchyStats();
 
-    // Fetch counties data
-    await countyManagementStore.fetchCounties({ page: 1, limit: 1 });
-    stats.value.counties = countyManagementStore.pagination.total;
-    stats.value.countiesWithData = countyManagementStore.pagination.total;
-
-    // Fetch recent counties
-    await countyManagementStore.fetchCounties({ page: 1, limit: 5 });
-    recentCounties.value = countyManagementStore.counties;
-
-    // Mock data for other components (replace with actual API calls)
-    stats.value.constituencies = 290;
-    stats.value.constituenciesWithData = 290;
-    stats.value.wards = 1450;
-    stats.value.wardsWithData = 1450;
-    stats.value.pollingStations = 40883;
-    stats.value.pollingStationsWithData = 40883;
+    // Update stats with real data from the API
+    stats.value.counties = hierarchyStats.totalCounties;
+    stats.value.countiesWithData = hierarchyStats.totalCounties; // Assuming all counties have data
+    stats.value.constituencies = hierarchyStats.totalConstituencies;
+    stats.value.constituenciesWithData = hierarchyStats.totalConstituencies; // Assuming all constituencies have data
+    stats.value.wards = hierarchyStats.totalWards;
+    stats.value.wardsWithData = hierarchyStats.totalWards; // Assuming all wards have data
+    stats.value.pollingStations = hierarchyStats.totalPollingStations;
+    stats.value.pollingStationsWithData = hierarchyStats.totalPollingStations; // Assuming all polling stations have data
+    stats.value.totalRegisteredVoters = hierarchyStats.totalRegisteredVoters;
   } catch (error) {
-    console.error('Error fetching polling station stats:', error);
-  } finally {
-    loading.value.counties = false;
+    console.error('Error fetching hierarchy statistics:', error);
   }
 };
 
@@ -413,63 +419,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.stat-card {
-  background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.stat-icon.counties {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.constituencies {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-icon.wards {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-icon.polling-stations {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.stat-content h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.stat-content p {
-  color: #6b7280;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
 .card {
   border: none;
   border-radius: 0.75rem;
