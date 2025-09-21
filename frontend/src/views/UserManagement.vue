@@ -7,7 +7,7 @@
     <div class="flex justify-end mb-6">
       <div class="flex space-x-3">
         <button
-          class="btn-outline-primary"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           @click="showCreateModal = true"
           :disabled="!canCreateUser"
         >
@@ -15,7 +15,7 @@
           Add User
         </button>
         <button
-          class="btn-outline-secondary"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           @click="refreshUsers"
           :disabled="loading"
         >
@@ -31,12 +31,12 @@
       v-if="stats"
     >
       <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
       >
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div
-              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+              class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center ring-1 ring-blue-100"
             >
               <i class="fas fa-users text-blue-600 text-xl"></i>
             </div>
@@ -45,17 +45,17 @@
             <h3 class="text-2xl font-bold text-gray-900">
               {{ stats.totalUsers }}
             </h3>
-            <p class="text-gray-600">Total Users</p>
+            <p class="text-sm text-gray-600 font-medium">Total Users</p>
           </div>
         </div>
       </div>
       <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
       >
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div
-              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+              class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center ring-1 ring-green-100"
             >
               <i class="fas fa-user-check text-green-600 text-xl"></i>
             </div>
@@ -64,17 +64,17 @@
             <h3 class="text-2xl font-bold text-gray-900">
               {{ stats.activeUsers }}
             </h3>
-            <p class="text-gray-600">Active Users</p>
+            <p class="text-sm text-gray-600 font-medium">Active Users</p>
           </div>
         </div>
       </div>
       <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
       >
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div
-              class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"
+              class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center ring-1 ring-red-100"
             >
               <i class="fas fa-user-times text-red-600 text-xl"></i>
             </div>
@@ -83,17 +83,17 @@
             <h3 class="text-2xl font-bold text-gray-900">
               {{ stats.inactiveUsers }}
             </h3>
-            <p class="text-gray-600">Inactive Users</p>
+            <p class="text-sm text-gray-600 font-medium">Inactive Users</p>
           </div>
         </div>
       </div>
       <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
       >
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div
-              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+              class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center ring-1 ring-purple-100"
             >
               <i class="fas fa-user-plus text-purple-600 text-xl"></i>
             </div>
@@ -102,19 +102,21 @@
             <h3 class="text-2xl font-bold text-gray-900">
               {{ stats.recentUsers.length }}
             </h3>
-            <p class="text-gray-600">Recent Users</p>
+            <p class="text-sm text-gray-600 font-medium">Recent Users</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Filters and Search -->
-    <div class="card mb-6">
-      <div class="card-body">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+      <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label class="form-label">Search Users</label>
-            <div class="relative">
+          <div class="flex flex-col">
+            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
+              >Search Users</label
+            >
+            <div class="relative flex-1">
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
               >
@@ -122,34 +124,45 @@
               </div>
               <input
                 type="text"
-                class="form-control pl-10"
+                class="w-full h-12 pl-10 pr-4 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                 placeholder="Search by name, email, or username..."
                 v-model="searchTerm"
                 @input="handleSearch"
               />
             </div>
           </div>
-          <div>
-            <FormSelect
-              v-model="selectedRoleOption"
-              :options="roleOptions"
-              label="Filter by Role"
-              placeholder="All Roles"
-              @change="handleRoleFilterChange"
-            />
+          <div class="flex flex-col">
+            <div class="space-y-0">
+              <FormSelect
+                v-model="selectedRoleOption"
+                :options="roleOptions"
+                label="Filter by Role"
+                placeholder="All Roles"
+                button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                @change="handleRoleFilterChange"
+              />
+            </div>
           </div>
-          <div>
-            <FormSelect
-              v-model="selectedStatusOption"
-              :options="statusOptions"
-              label="Filter by Status"
-              placeholder="All Status"
-              @change="handleStatusFilterChange"
-            />
+          <div class="flex flex-col">
+            <div class="space-y-0">
+              <FormSelect
+                v-model="selectedStatusOption"
+                :options="statusOptions"
+                label="Filter by Status"
+                placeholder="All Status"
+                button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                @change="handleStatusFilterChange"
+              />
+            </div>
           </div>
-          <div>
-            <label class="form-label">&nbsp;</label>
-            <button class="btn-outline-secondary w-full" @click="clearFilters">
+          <div class="flex flex-col">
+            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
+              >&nbsp;</label
+            >
+            <button
+              class="w-full h-12 inline-flex items-center justify-center px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              @click="clearFilters"
+            >
               <i class="fas fa-times mr-2"></i>
               Clear
             </button>
@@ -178,30 +191,36 @@
       <!-- Header Actions -->
       <template #header-actions>
         <div class="flex items-center space-x-3">
-          <div class="flex border border-gray-300 rounded-md">
+          <div class="flex border border-gray-300 rounded-lg overflow-hidden">
             <button
-              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              class="px-3 py-2 text-sm font-medium border-r border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
               @click="changePageSize(10)"
               :class="{
-                'bg-primary-500 text-white': pagination.limit === 10,
+                'bg-indigo-600 text-white hover:bg-indigo-700':
+                  pagination.limit === 10,
+                'bg-white text-gray-700': pagination.limit !== 10,
               }"
             >
               10
             </button>
             <button
-              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              class="px-3 py-2 text-sm font-medium border-r border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
               @click="changePageSize(20)"
               :class="{
-                'bg-primary-500 text-white': pagination.limit === 20,
+                'bg-indigo-600 text-white hover:bg-indigo-700':
+                  pagination.limit === 20,
+                'bg-white text-gray-700': pagination.limit !== 20,
               }"
             >
               20
             </button>
             <button
-              class="px-3 py-1 text-sm border-r border-gray-300 hover:bg-gray-50"
+              class="px-3 py-2 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
               @click="changePageSize(50)"
               :class="{
-                'bg-primary-500 text-white': pagination.limit === 50,
+                'bg-indigo-600 text-white hover:bg-indigo-700':
+                  pagination.limit === 50,
+                'bg-white text-gray-700': pagination.limit !== 50,
               }"
             >
               50
@@ -546,3 +565,18 @@ onMounted(async () => {
   await refreshUsers();
 });
 </script>
+
+<style scoped>
+/* Override FormSelect spacing to align with other elements */
+.space-y-0 :deep(.space-y-1) {
+  gap: 0;
+}
+
+.space-y-0 :deep(.mt-2) {
+  margin-top: 0.5rem; /* 8px - same as mb-2 on labels */
+}
+
+.space-y-0 :deep(.space-y-1 > div) {
+  margin-top: 0;
+}
+</style>

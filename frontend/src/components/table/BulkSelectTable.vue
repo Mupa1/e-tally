@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 sm:px-6 lg:px-8">
+  <div>
     <!-- Header Section -->
     <div v-if="showHeader && showHeaderActions" class="flex justify-end">
       <slot name="header-actions" />
@@ -9,7 +9,9 @@
     <div class="mt-8 flow-root">
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div class="group/table relative">
+          <div
+            class="group/table relative bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+          >
             <!-- Bulk Actions Bar -->
             <div
               v-if="showBulkActions && selectedItems.length > 0"
@@ -22,14 +24,14 @@
               >
                 <button
                   type="button"
-                  class="inline-flex items-center rounded-sm bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white"
+                  class="inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white transition-colors duration-200"
                   @click="handleBulkAction('edit', selectedItems)"
                 >
                   Bulk edit
                 </button>
                 <button
                   type="button"
-                  class="inline-flex items-center rounded-sm bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-white"
+                  class="inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white transition-colors duration-200"
                   @click="handleBulkAction('delete', selectedItems)"
                 >
                   Delete all
@@ -41,7 +43,7 @@
               class="relative min-w-full table-fixed divide-y divide-gray-300"
             >
               <!-- Table Header -->
-              <thead>
+              <thead class="bg-gray-50">
                 <tr>
                   <th
                     v-if="showSelection"
@@ -283,7 +285,7 @@
           </div>
           <nav class="flex space-x-2">
             <button
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               :disabled="pagination.page === 1"
               @click="changePage(pagination.page - 1)"
             >
@@ -292,7 +294,7 @@
             <button
               v-for="page in visiblePages"
               :key="page"
-              class="px-3 py-2 text-sm font-medium border rounded-md"
+              class="px-3 py-2 text-sm font-medium border rounded-lg transition-colors duration-200"
               :class="
                 page === pagination.page
                   ? 'bg-indigo-600 text-white border-indigo-600'
@@ -304,7 +306,7 @@
               {{ page }}
             </button>
             <button
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               :disabled="pagination.page === pagination.totalPages"
               @click="changePage(pagination.page + 1)"
             >

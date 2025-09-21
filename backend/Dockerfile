@@ -17,11 +17,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Copy and make scripts executable
-COPY init-app.sh start.sh ./
-RUN chmod +x init-app.sh start.sh && \
-    ls -la *.sh
-
 # Generate Prisma client
 RUN npx prisma generate
 
