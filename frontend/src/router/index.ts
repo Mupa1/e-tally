@@ -59,6 +59,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'Constituency Management - e-Tally' },
   },
   {
+    path: '/constituencies/:id',
+    name: 'ViewConstituency',
+    component: () => import('@/views/ViewConstituencyPage.vue'),
+    meta: { requiresAuth: true, title: 'Constituency Details - e-Tally' },
+  },
+  {
     path: '/pollingstation',
     name: 'PollingStationManagement',
     component: ElectionHierarchy,

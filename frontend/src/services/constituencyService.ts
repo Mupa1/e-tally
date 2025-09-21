@@ -206,10 +206,12 @@ class ConstituencyService {
   }
 
   async getConstituencyStats(
-    countyId?: string
+    countyId?: string,
+    constituencyId?: string
   ): Promise<ConstituencyStatsResponse> {
     const queryParams = new URLSearchParams();
     if (countyId) queryParams.append('countyId', countyId);
+    if (constituencyId) queryParams.append('constituencyId', constituencyId);
 
     const response = await axios.get(
       `${API_BASE_URL}/constituencies/stats?${queryParams.toString()}`,

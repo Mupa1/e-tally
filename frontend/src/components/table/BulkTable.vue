@@ -160,7 +160,7 @@ import BulkSelectTable from './BulkSelectTable.vue';
 import type { TableColumn, TablePagination } from './Table.vue';
 import type { User } from '@/services/userService';
 
-export interface UserBulkTableProps {
+export interface BulkTableProps {
   users: User[];
   title?: string;
   subtitle?: string;
@@ -185,7 +185,7 @@ export interface UserBulkTableProps {
   canBulkDelete?: boolean;
 }
 
-const props = withDefaults(defineProps<UserBulkTableProps>(), {
+const props = withDefaults(defineProps<BulkTableProps>(), {
   showHeader: true,
   showHeaderActions: true,
   showActions: true,

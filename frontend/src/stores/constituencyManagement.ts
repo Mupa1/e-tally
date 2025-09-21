@@ -218,13 +218,17 @@ export const useConstituencyManagementStore = defineStore(
       error.value = null;
     };
 
-    const fetchConstituencyStats = async (countyId?: string) => {
+    const fetchConstituencyStats = async (
+      countyId?: string,
+      constituencyId?: string
+    ) => {
       try {
         loading.value = true;
         error.value = null;
 
         const response = await constituencyService.getConstituencyStats(
-          countyId
+          countyId,
+          constituencyId
         );
 
         if (response.success) {

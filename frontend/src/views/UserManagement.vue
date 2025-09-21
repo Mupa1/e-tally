@@ -172,7 +172,7 @@
     </div>
 
     <!-- Users Table -->
-    <UserBulkTable
+    <BulkTable
       :users="users"
       :pagination="pagination"
       :loading="loading"
@@ -228,7 +228,7 @@
           </div>
         </div>
       </template>
-    </UserBulkTable>
+    </BulkTable>
 
     <!-- Create User Modal -->
     <CreateUserModal
@@ -273,7 +273,7 @@ import ChangePasswordModal from '@/components/pages/users/ChangePasswordModal.vu
 import ViewUserModal from '@/components/pages/users/ViewUserModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
 import { FormSelect, type SelectOption } from '@/components/select';
-import { UserBulkTable } from '@/components/table';
+import { BulkTable } from '@/components/table';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
@@ -463,7 +463,7 @@ const changePageSize = (limit: number) => {
   userManagementStore.fetchUsers({ limit, page: 1 });
 };
 
-// Note: Selection management is now handled by the UserBulkTable component
+// Note: Selection management is now handled by the BulkTable component
 
 const viewUser = (user: User) => {
   selectedUser.value = user;

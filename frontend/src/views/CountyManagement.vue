@@ -23,15 +23,40 @@
       </div>
     </div>
 
-    <!-- Action Bar -->
+    <!-- Action Buttons -->
+    <div class="flex justify-end mb-6">
+      <div class="flex space-x-3">
+        <button
+          v-if="user?.role === 'SUPER_ADMIN'"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          @click="showCreateModal = true"
+          :disabled="countyManagementStore.loading"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          Add County
+        </button>
+        <button
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          @click="refreshCounties"
+          :disabled="countyManagementStore.loading"
+        >
+          <i
+            class="fas fa-sync-alt mr-2"
+            :class="{ 'fa-spin': countyManagementStore.loading }"
+          ></i>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
       <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Search -->
           <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
-              Search Counties
-            </label>
+            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
+              >Search Counties</label
+            >
             <div class="relative flex-1">
               <div
                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
@@ -41,14 +66,12 @@
               <input
                 type="text"
                 class="w-full h-12 pl-10 pr-4 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                placeholder="Search counties..."
+                placeholder="Search by name or code..."
                 v-model="searchQuery"
                 @input="handleSearch"
               />
             </div>
           </div>
-
-          <!-- Page Size -->
           <div class="flex flex-col">
             <div class="space-y-0">
               <FormSelect
@@ -61,211 +84,101 @@
               />
             </div>
           </div>
-
-          <!-- Empty space for alignment -->
-          <div></div>
-
-          <!-- Add Button -->
           <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
-              &nbsp;
-            </label>
-            <button
-              class="w-full h-12 inline-flex items-center justify-center px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              @click="showCreateModal = true"
-              :disabled="countyManagementStore.loading"
+            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
+              >&nbsp;</label
             >
-              <i class="fas fa-plus mr-2"></i>
-              Add County
+            <button
+              class="w-full h-12 inline-flex items-center justify-center px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              @click="clearFilters"
+            >
+              <i class="fas fa-times mr-2"></i>
+              Clear
             </button>
+          </div>
+          <div class="flex flex-col">
+            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
+              >&nbsp;</label
+            >
+            <div></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Counties Table -->
-    <div
-      class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+    <SimpleTable
+      :data="countyManagementStore.filteredCounties"
+      :columns="tableColumns"
+      :loading="countyManagementStore.loading"
+      :pagination="countyManagementStore.pagination"
+      :sort-by="sortBy"
+      :sort-order="sortOrder"
+      :empty-message="'No counties found. Get started by adding your first county.'"
+      @action="handleTableAction"
+      @sort="handleSort"
+      @page-change="changePage"
     >
-      <!-- Table Header -->
-      <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-        <h5 class="text-lg font-semibold text-gray-900 mb-0">
-          <i class="fas fa-map-marker-alt mr-2 text-indigo-600"></i>
-          Counties
-          <span
-            class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
-          >
-            {{ countyManagementStore.totalCounties }}
-          </span>
-        </h5>
-      </div>
-
-      <!-- Table Content -->
-      <div class="p-0">
-        <!-- Loading State -->
-        <div v-if="countyManagementStore.loading" class="text-center p-8">
-          <div
-            class="inline-flex items-center justify-center w-8 h-8 text-indigo-600"
-          >
-            <i class="fas fa-spinner fa-spin text-2xl"></i>
-          </div>
-          <p class="mt-2 text-gray-600">Loading counties...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div
-          v-else-if="!countyManagementStore.hasCounties"
-          class="text-center p-8"
+      <!-- Custom Code Cell -->
+      <template #cell-code="{ value }">
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
         >
-          <i class="fas fa-map-marker-alt text-6xl text-gray-300 mb-4"></i>
-          <h5 class="text-lg font-semibold text-gray-900 mb-2">
-            No counties found
-          </h5>
-          <p class="text-gray-600 mb-4">
-            Get started by adding your first county.
-          </p>
+          {{ value }}
+        </span>
+      </template>
+
+      <!-- Custom Name Cell -->
+      <template #cell-name="{ value }">
+        <div class="text-sm font-semibold text-gray-900">
+          {{ value }}
+        </div>
+      </template>
+
+      <!-- Custom Constituencies Cell -->
+      <template #cell-_count.constituencies="{ value }">
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+        >
+          {{ value || 0 }}
+        </span>
+      </template>
+
+      <!-- Custom Actions -->
+      <template #actions="{ item }">
+        <div class="flex space-x-1">
           <button
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-            @click="showCreateModal = true"
+            class="text-indigo-600 hover:text-indigo-900 p-1"
+            @click="viewCounty(item)"
+            title="View County"
           >
-            <i class="fas fa-plus mr-2"></i>
-            Add County
+            <i class="fas fa-eye text-sm"></i>
           </button>
         </div>
+      </template>
 
-        <!-- Table -->
-        <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th
-                  @click="handleSort('code')"
-                  class="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div class="flex items-center">
-                    Code
-                    <i class="fas fa-sort ml-1" v-if="sortBy !== 'code'"></i>
-                    <i
-                      class="fas fa-sort-up ml-1"
-                      v-else-if="sortOrder === 'asc'"
-                    ></i>
-                    <i class="fas fa-sort-down ml-1" v-else></i>
-                  </div>
-                </th>
-                <th
-                  @click="handleSort('name')"
-                  class="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div class="flex items-center">
-                    Name
-                    <i class="fas fa-sort ml-1" v-if="sortBy !== 'name'"></i>
-                    <i
-                      class="fas fa-sort-up ml-1"
-                      v-else-if="sortOrder === 'asc'"
-                    ></i>
-                    <i class="fas fa-sort-down ml-1" v-else></i>
-                  </div>
-                </th>
-                <th
-                  class="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Constituencies
-                </th>
-                <th
-                  class="px-1 py-1 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr
-                v-for="county in countyManagementStore.filteredCounties"
-                :key="county.id"
-                class="hover:bg-gray-50 transition-colors duration-200"
-              >
-                <td class="px-1 py-1 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                  >
-                    {{ county.code }}
-                  </span>
-                </td>
-                <td class="px-1 py-1 whitespace-nowrap">
-                  <div class="text-sm font-semibold text-gray-900">
-                    {{ county.name }}
-                  </div>
-                </td>
-                <td class="px-1 py-1 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {{ county._count?.constituencies ?? 0 }}
-                  </span>
-                </td>
-                <td
-                  class="px-1 py-1 whitespace-nowrap text-right text-sm font-medium"
-                >
-                  <div class="flex items-center justify-end">
-                    <button
-                      class="p-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-lg transition-colors duration-200"
-                      @click="viewCounty(county)"
-                      title="View Details"
-                    >
-                      <i class="fas fa-eye"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div
-        v-if="countyManagementStore.pagination.totalPages > 1"
-        class="bg-gray-50 px-6 py-4 border-t border-gray-200"
-      >
-        <nav aria-label="Counties pagination">
-          <div class="flex items-center justify-center space-x-2">
-            <button
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              @click="changePage(countyManagementStore.pagination.page - 1)"
-              :disabled="countyManagementStore.pagination.page === 1"
-            >
-              Previous
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
-              :class="{
-                'bg-indigo-600 text-white hover:bg-indigo-700':
-                  page === countyManagementStore.pagination.page,
-                'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50':
-                  page !== countyManagementStore.pagination.page,
-              }"
-              @click="changePage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              @click="changePage(countyManagementStore.pagination.page + 1)"
-              :disabled="
-                countyManagementStore.pagination.page ===
-                countyManagementStore.pagination.totalPages
-              "
-            >
-              Next
-            </button>
-          </div>
-        </nav>
-      </div>
-    </div>
+      <!-- Custom Empty State -->
+      <template #empty-state>
+        <i class="fas fa-map-marker-alt text-6xl text-gray-300 mb-4"></i>
+        <h5 class="text-lg font-semibold text-gray-900 mb-2">
+          No counties found
+        </h5>
+        <p class="text-gray-600 mb-4">
+          <span v-if="user?.role === 'SUPER_ADMIN'"
+            >Get started by adding your first county.</span
+          >
+          <span v-else>No counties are available at the moment.</span>
+        </p>
+        <button
+          v-if="user?.role === 'SUPER_ADMIN'"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          @click="showCreateModal = true"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          Add County
+        </button>
+      </template>
+    </SimpleTable>
 
     <!-- Create County Modal -->
     <CreateCountyModal
@@ -296,6 +209,8 @@ import MainLayout from '@/components/MainLayout.vue';
 import CreateCountyModal from '@/components/pages/counties/CreateCountyModal.vue';
 import EditCountyModal from '@/components/pages/counties/EditCountyModal.vue';
 import { FormSelect } from '@/components/select';
+import SimpleTable from '@/components/table/SimpleTable.vue';
+import type { SimpleTableColumn } from '@/components/table/SimpleTable.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -312,57 +227,92 @@ const pageSize = ref(10);
 
 // Page size options for FormSelect
 const pageSizeOptions = [
-  { value: '10', label: '10 per page' },
-  { value: '20', label: '20 per page' },
-  { value: '50', label: '50 per page' },
+  { id: '10', value: '10', label: '10 per page' },
+  { id: '20', value: '20', label: '20 per page' },
+  { id: '50', value: '50', label: '50 per page' },
 ];
 
 // Page size option for FormSelect
-const pageSizeOption = ref('10');
+const pageSizeOption = ref({ id: '10', value: '10', label: '10 per page' });
+
+// Table columns configuration
+const tableColumns: SimpleTableColumn[] = [
+  {
+    key: 'code',
+    label: 'Code',
+    sortable: true,
+    width: '20',
+  },
+  {
+    key: 'name',
+    label: 'Name',
+    sortable: true,
+    width: '30',
+  },
+  {
+    key: '_count.constituencies',
+    label: 'Constituencies',
+    sortable: false,
+    width: '20',
+  },
+];
 
 // Forms - now handled by modal components
 
 // Computed
 const user = computed(() => authStore.user);
 
-const visiblePages = computed(() => {
-  const current = countyManagementStore.pagination.page;
-  const total = countyManagementStore.pagination.totalPages;
-  const pages = [];
-
-  const start = Math.max(1, current - 2);
-  const end = Math.min(total, current + 2);
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i);
-  }
-
-  return pages;
-});
-
 // Methods
+const refreshCounties = async () => {
+  await countyManagementStore.fetchCounties();
+};
+
 const handleSearch = () => {
   countyManagementStore.setSearchQuery(searchQuery.value);
   countyManagementStore.fetchCounties({ page: 1 });
 };
 
-const handleSort = (field: string) => {
-  if (sortBy.value === field) {
-    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortBy.value = field;
-    sortOrder.value = 'asc';
-  }
+const clearFilters = async () => {
+  searchQuery.value = '';
+  pageSizeOption.value = { id: '10', value: '10', label: '10 per page' };
+  countyManagementStore.setSearchQuery('');
+  countyManagementStore.changePageSize(10);
+  await countyManagementStore.fetchCounties({ page: 1 });
+};
+
+const changePageSize = (limit: number) => {
+  countyManagementStore.changePageSize(limit);
+  countyManagementStore.fetchCounties({ page: 1 });
+};
+
+const handleSort = (field: string, order: 'asc' | 'desc') => {
+  sortBy.value = field;
+  sortOrder.value = order;
 
   countyManagementStore.setSorting(sortBy.value, sortOrder.value);
   countyManagementStore.fetchCounties({ page: 1 });
+};
+
+const handleTableAction = (action: string, item: County, index: number) => {
+  switch (action) {
+    case 'view':
+      viewCounty(item);
+      break;
+    case 'edit':
+      editCounty(item);
+      break;
+    case 'delete':
+      deleteCounty(item);
+      break;
+  }
 };
 
 const changePage = (page: number) => {
   countyManagementStore.changePage(page);
 };
 
-const handlePageSizeChange = (value: string) => {
+const handlePageSizeChange = (option: any) => {
+  const value = option?.value || option;
   pageSize.value = Number(value);
   countyManagementStore.changePageSize(Number(value));
 };
@@ -425,8 +375,8 @@ const formatDate = (dateString: string) => {
 };
 
 // Lifecycle
-onMounted(() => {
-  countyManagementStore.fetchCounties();
+onMounted(async () => {
+  await refreshCounties();
 });
 
 // Watch for search query changes
@@ -440,7 +390,12 @@ watch(searchQuery, () => {
 
 // Watch for page size changes
 watch(pageSize, (newValue) => {
-  pageSizeOption.value = newValue.toString();
+  const option = pageSizeOptions.find(
+    (opt) => opt.value === newValue.toString()
+  );
+  if (option) {
+    pageSizeOption.value = option;
+  }
 });
 
 // Initialize page size option
@@ -448,7 +403,12 @@ watch(
   () => countyManagementStore.pagination.limit,
   (newLimit) => {
     pageSize.value = newLimit;
-    pageSizeOption.value = newLimit.toString();
+    const option = pageSizeOptions.find(
+      (opt) => opt.value === newLimit.toString()
+    );
+    if (option) {
+      pageSizeOption.value = option;
+    }
   },
   { immediate: true }
 );
