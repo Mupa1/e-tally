@@ -59,6 +59,50 @@ export interface ConstituenciesParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   countyId?: string;
+  fields?: string; // Comma-separated field list for selective loading
+  cursor?: string; // For cursor-based pagination
+}
+
+export interface ConstituencyStats {
+  totalCount: number;
+  byCounty: Array<{
+    constituencyId: string;
+    _count: { id: number };
+  }>;
+  byCAW: Array<{
+    cawId: string;
+    _count: { id: number };
+  }>;
+  voterStats: {
+    _sum: { registeredVoters: number | null };
+    _avg: { registeredVoters: number | null };
+    _max: { registeredVoters: number | null };
+    _min: { registeredVoters: number | null };
+  };
+}
+
+export interface ConstituencyStatsResponse {
+  success: boolean;
+  data: ConstituencyStats;
+}
+
+export interface BulkUpdateData {
+  id: string;
+  data: UpdateConstituencyData;
+}
+
+export interface BulkUpdateResponse {
+  success: boolean;
+  data: {
+    total: number;
+    successful: number;
+    failed: number;
+    errors: Array<{
+      id: string;
+      error: string;
+    }>;
+  };
+  message: string;
 }
 
 class ConstituencyService {
@@ -81,6 +125,8 @@ class ConstituencyService {
     if (params.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     if (params.countyId) queryParams.append('countyId', params.countyId);
+    if (params.fields) queryParams.append('fields', params.fields);
+    if (params.cursor) queryParams.append('cursor', params.cursor);
 
     const response = await axios.get(
       `${API_BASE_URL}/constituencies?${queryParams.toString()}`,
@@ -145,6 +191,40 @@ class ConstituencyService {
     try {
       const response = await axios.delete(
         `${API_BASE_URL}/constituencies/${id}`,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      // Extract error message from response
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  }
+
+  async getConstituencyStats(
+    countyId?: string
+  ): Promise<ConstituencyStatsResponse> {
+    const queryParams = new URLSearchParams();
+    if (countyId) queryParams.append('countyId', countyId);
+
+    const response = await axios.get(
+      `${API_BASE_URL}/constituencies/stats?${queryParams.toString()}`,
+      { headers: this.getAuthHeaders() }
+    );
+    return response.data;
+  }
+
+  async bulkUpdateConstituencies(
+    updates: BulkUpdateData[]
+  ): Promise<BulkUpdateResponse> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/constituencies/bulk-update`,
+        { updates },
         {
           headers: this.getAuthHeaders(),
         }

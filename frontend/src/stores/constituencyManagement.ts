@@ -6,6 +6,9 @@ import {
   type ConstituenciesParams,
   type CreateConstituencyData,
   type UpdateConstituencyData,
+  type ConstituencyStats,
+  type BulkUpdateData,
+  type BulkUpdateResponse,
 } from '@/services/constituencyService';
 
 export const useConstituencyManagementStore = defineStore(
@@ -21,11 +24,15 @@ export const useConstituencyManagementStore = defineStore(
       page: 1,
       limit: 10,
       totalPages: 0,
+      hasNextPage: false,
+      nextCursor: null as string | null,
     });
     const searchQuery = ref('');
     const sortBy = ref('createdAt');
     const sortOrder = ref<'asc' | 'desc'>('desc');
     const selectedCountyId = ref<string | null>(null);
+    const stats = ref<ConstituencyStats | null>(null);
+    const useCursorPagination = ref(false);
 
     // Computed
     const filteredConstituencies = computed(() => constituencies.value);
@@ -211,6 +218,71 @@ export const useConstituencyManagementStore = defineStore(
       error.value = null;
     };
 
+    const fetchConstituencyStats = async (countyId?: string) => {
+      try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await constituencyService.getConstituencyStats(
+          countyId
+        );
+
+        if (response.success) {
+          stats.value = response.data;
+          return response.data;
+        } else {
+          throw new Error('Failed to fetch constituency statistics');
+        }
+      } catch (err: any) {
+        error.value = err.message || 'Failed to fetch constituency statistics';
+        console.error('Error fetching constituency statistics:', err);
+        throw err;
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const bulkUpdateConstituencies = async (updates: BulkUpdateData[]) => {
+      try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await constituencyService.bulkUpdateConstituencies(
+          updates
+        );
+
+        if (response.success) {
+          // Refresh the constituencies list
+          await fetchConstituencies();
+          return response.data;
+        } else {
+          throw new Error('Failed to bulk update constituencies');
+        }
+      } catch (err: any) {
+        error.value = err.message || 'Failed to bulk update constituencies';
+        console.error('Error bulk updating constituencies:', err);
+        throw err;
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const toggleCursorPagination = () => {
+      useCursorPagination.value = !useCursorPagination.value;
+      // Reset pagination when switching modes
+      pagination.value.page = 1;
+      pagination.value.nextCursor = null;
+      fetchConstituencies({ page: 1 });
+    };
+
+    const loadNextPage = () => {
+      if (useCursorPagination.value && pagination.value.nextCursor) {
+        fetchConstituencies({ cursor: pagination.value.nextCursor });
+      } else if (!useCursorPagination.value) {
+        changePage(pagination.value.page + 1);
+      }
+    };
+
     const resetState = () => {
       constituencies.value = [];
       currentConstituency.value = null;
@@ -221,11 +293,15 @@ export const useConstituencyManagementStore = defineStore(
         page: 1,
         limit: 10,
         totalPages: 0,
+        hasNextPage: false,
+        nextCursor: null,
       };
       searchQuery.value = '';
       sortBy.value = 'createdAt';
       sortOrder.value = 'desc';
       selectedCountyId.value = null;
+      stats.value = null;
+      useCursorPagination.value = false;
     };
 
     return {
@@ -239,6 +315,8 @@ export const useConstituencyManagementStore = defineStore(
       sortBy,
       sortOrder,
       selectedCountyId,
+      stats,
+      useCursorPagination,
 
       // Computed
       filteredConstituencies,
@@ -258,6 +336,10 @@ export const useConstituencyManagementStore = defineStore(
       changePageSize,
       clearError,
       resetState,
+      fetchConstituencyStats,
+      bulkUpdateConstituencies,
+      toggleCursorPagination,
+      loadNextPage,
     };
   }
 );

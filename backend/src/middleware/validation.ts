@@ -4,7 +4,7 @@ import { AppError } from '../utils/AppError';
 
 export const validateRequest = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const { error } = schema.validate(req.body);
+    const { error, value } = schema.validate(req.body, { convert: true });
 
     if (error) {
       const errorMessage = error.details
@@ -13,13 +13,15 @@ export const validateRequest = (schema: Joi.ObjectSchema) => {
       return next(new AppError(`Validation error: ${errorMessage}`));
     }
 
+    // Replace req.body with the converted values
+    req.body = value;
     next();
   };
 };
 
 export const validateParams = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const { error } = schema.validate(req.params);
+    const { error, value } = schema.validate(req.params, { convert: true });
 
     if (error) {
       const errorMessage = error.details
@@ -28,13 +30,15 @@ export const validateParams = (schema: Joi.ObjectSchema) => {
       return next(new AppError(`Parameter validation error: ${errorMessage}`));
     }
 
+    // Replace req.params with the converted values
+    req.params = value;
     next();
   };
 };
 
 export const validateQuery = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const { error } = schema.validate(req.query);
+    const { error, value } = schema.validate(req.query, { convert: true });
 
     if (error) {
       const errorMessage = error.details
@@ -43,6 +47,8 @@ export const validateQuery = (schema: Joi.ObjectSchema) => {
       return next(new AppError(`Query validation error: ${errorMessage}`));
     }
 
+    // Replace req.query with the converted values
+    req.query = value;
     next();
   };
 };
@@ -55,7 +61,7 @@ export const schemas = {
 
   pagination: Joi.object({
     page: Joi.number().integer().min(1).default(1),
-    limit: Joi.number().integer().min(1).max(100).default(10),
+    limit: Joi.number().integer().min(1).max(1000).default(10),
     sortBy: Joi.string().default('createdAt'),
     sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
     search: Joi.string().optional(),

@@ -163,6 +163,16 @@ model PollingStation {
   electionResults   ElectionResult[]
   incidents         Incident[]
 
+  // Indexes for performance optimization
+  @@index([name])
+  @@index([constituencyId])
+  @@index([cawId])
+  @@index([isActive])
+  @@index([constituencyId, isActive])
+  @@index([cawId, isActive])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([address])
   @@map("polling_stations")
 }
 
@@ -179,6 +189,11 @@ model VoterRegistration {
   // Relationships
   pollingStation PollingStation @relation(fields: [pollingStationId], references: [id], onDelete: Cascade)
 
+  // Indexes for performance optimization
+  @@index([pollingStationId])
+  @@index([isActive])
+  @@index([pollingStationId, isActive])
+  @@index([createdAt])
   @@map("voter_registrations")
 }
 

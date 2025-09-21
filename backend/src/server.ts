@@ -16,6 +16,8 @@ import { connectDatabase } from './utils/database';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import countyRoutes from './routes/counties';
+import constituencyRoutes from './routes/constituencies';
+import cawRoutes from './routes/caws';
 import pollingStationRoutes from './routes/pollingStations';
 import bulkUploadRoutes from './routes/bulkUpload';
 
@@ -135,6 +137,8 @@ app.get('/error-test', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/counties', countyRoutes);
+app.use('/api/constituencies', constituencyRoutes);
+app.use('/api/caws', cawRoutes);
 app.use('/api/polling-stations', pollingStationRoutes);
 app.use('/api/bulk-upload', bulkUploadRoutes);
 

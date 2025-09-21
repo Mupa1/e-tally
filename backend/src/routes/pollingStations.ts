@@ -6,19 +6,26 @@ import { validateQuery, validateRequest } from '../middleware/validation';
 import Joi from 'joi';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/logger';
+import { prisma } from '../utils/database';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-// Validation schemas
+// Optimized validation schemas
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).max(100).default(10),
+  limit: Joi.number().integer().min(1).max(1000).default(50), // Increased max limit
   sortBy: Joi.string()
-    .valid('name', 'code', 'createdAt', 'updatedAt')
-    .default('createdAt'),
-  sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
+    .valid('name', 'code', 'createdAt', 'updatedAt', 'registeredVoters')
+    .default('name'),
+  sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
   search: Joi.string().allow('').optional(),
+  constituencyId: Joi.string().optional(),
+  cawId: Joi.string().optional(),
+  countyId: Joi.string().optional(),
+  // Cursor-based pagination for better performance
+  cursor: Joi.string().optional(),
+  // Field selection for performance
+  fields: Joi.string().optional(), // Comma-separated field list
 });
 
 const createPollingStationSchema = Joi.object({
@@ -26,6 +33,17 @@ const createPollingStationSchema = Joi.object({
   name: Joi.string().required(),
   constituencyId: Joi.string().required(),
   cawId: Joi.string().required(),
+  latitude: Joi.number().optional(),
+  longitude: Joi.number().optional(),
+  address: Joi.string().allow('').optional(),
+  registeredVoters: Joi.number().integer().min(0).optional(),
+});
+
+const updatePollingStationSchema = Joi.object({
+  code: Joi.string().optional(),
+  name: Joi.string().optional(),
+  constituencyId: Joi.string().optional(),
+  cawId: Joi.string().optional(),
   latitude: Joi.number().optional(),
   longitude: Joi.number().optional(),
   address: Joi.string().allow('').optional(),
@@ -54,75 +72,164 @@ const bulkUploadSchema = Joi.object({
     .required(),
 });
 
-// GET /api/polling-stations - Get all polling stations with pagination and search
+// Optimized field selection for different use cases
+const getSelectFields = (fields?: string) => {
+  const defaultFields = {
+    id: true,
+    code: true,
+    name: true,
+    latitude: true,
+    longitude: true,
+    address: true,
+    isActive: true,
+    createdAt: true,
+    updatedAt: true,
+    constituencyId: true,
+    cawId: true,
+  };
+
+  if (!fields) return defaultFields;
+
+  const requestedFields = fields.split(',').map((f) => f.trim());
+  const selectedFields: any = {};
+
+  requestedFields.forEach((field) => {
+    if (defaultFields.hasOwnProperty(field)) {
+      selectedFields[field] = true;
+    }
+  });
+
+  return selectedFields;
+};
+
+// GET /api/polling-stations - Highly optimized for 40k+ records
 router.get(
   '/',
   authenticateToken,
   validateQuery(paginationSchema),
   async (req, res, next) => {
     try {
-      const { page, limit, sortBy, sortOrder, search } = req.query as any;
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        search,
+        constituencyId,
+        cawId,
+        countyId,
+        cursor,
+        fields,
+      } = req.query as any;
+
+      const selectFields = getSelectFields(fields);
       const skip = (page - 1) * limit;
 
-      const where: any = {};
+      // Build optimized where clause
+      const where: any = {
+        isActive: true, // Only active polling stations
+      };
+
+      // Add filters
+      if (constituencyId) where.constituencyId = constituencyId;
+      if (cawId) where.cawId = cawId;
+      if (countyId) {
+        where.constituency = { countyId };
+      }
+
+      // Optimized search - use database indexes
       if (search) {
-        const searchTerms = search.trim().split(/\s+/);
-        if (searchTerms.length === 1) {
+        const searchTerm = search.trim();
+        if (searchTerm.length >= 2) {
+          // Minimum search length for performance
           where.OR = [
-            { name: { contains: search, mode: 'insensitive' } },
-            { code: { contains: search, mode: 'insensitive' } },
-            { address: { contains: search, mode: 'insensitive' } },
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { code: { contains: searchTerm, mode: 'insensitive' } },
+            { address: { contains: searchTerm, mode: 'insensitive' } },
           ];
-        } else {
-          const searchConditions: any[] = [];
-          searchTerms.forEach((term: string) => {
-            searchConditions.push(
-              { name: { contains: term, mode: 'insensitive' } },
-              { code: { contains: term, mode: 'insensitive' } },
-              { address: { contains: term, mode: 'insensitive' } }
-            );
-          });
-          where.OR = searchConditions;
         }
       }
 
-      const total = await prisma.pollingStation.count({ where });
-      const pollingStations = await prisma.pollingStation.findMany({
-        where,
-        include: {
-          constituency: {
-            include: {
-              county: true,
+      // Optimized sorting
+      const orderBy: any = {};
+      if (sortBy === 'registeredVoters') {
+        // Special handling for registered voters (requires join)
+        orderBy.voterRegistration = { _count: sortOrder };
+      } else {
+        orderBy[sortBy] = sortOrder;
+      }
+
+      // Use cursor-based pagination for better performance on large datasets
+      let paginationClause: any = {};
+      if (cursor) {
+        paginationClause = {
+          cursor: { id: cursor },
+          skip: 1, // Skip the cursor record
+        };
+      } else {
+        paginationClause = { skip, take: limit };
+      }
+
+      // Optimized query with selective field loading
+      const [pollingStations, total] = await Promise.all([
+        prisma.pollingStation.findMany({
+          where,
+          select: {
+            ...selectFields,
+            // Always include relationships for context
+            constituency: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                county: {
+                  select: {
+                    id: true,
+                    code: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            caw: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
+            // Only load voter registration count, not full records
+            _count: {
+              select: {
+                voterRegistration: true,
+              },
             },
           },
-          caw: true,
-          voterRegistration: {
-            where: { isActive: true },
-            orderBy: { createdAt: 'desc' },
-            take: 1,
-          },
-        },
-        skip: skip || 0,
-        take: parseInt(limit as string) || 10,
-        orderBy:
-          sortBy === 'name'
-            ? { name: sortOrder || 'asc' }
-            : sortBy === 'code'
-            ? { code: sortOrder || 'asc' }
-            : sortBy === 'updatedAt'
-            ? { updatedAt: sortOrder || 'desc' }
-            : { createdAt: sortOrder || 'desc' },
-      });
+          orderBy,
+          ...paginationClause,
+        }),
+        // Only count if not using cursor pagination
+        cursor ? null : prisma.pollingStation.count({ where }),
+      ]);
+
+      // Calculate pagination info
+      const totalCount = total || 0;
+      const hasNextPage = pollingStations.length === limit;
+      const nextCursor = hasNextPage
+        ? pollingStations[pollingStations.length - 1]?.id
+        : null;
 
       res.json({
         success: true,
         data: {
           pollingStations,
           pagination: {
-            total,
-            page: parseInt(page as string) || 1,
-            limit: parseInt(limit as string) || 10,
-            totalPages: Math.ceil(total / (parseInt(limit as string) || 10)),
+            total: totalCount,
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 50,
+            totalPages: Math.ceil(totalCount / (parseInt(limit) || 50)),
+            hasNextPage,
+            nextCursor,
           },
         },
       });
@@ -133,23 +240,106 @@ router.get(
   }
 );
 
-// GET /api/polling-stations/:id - Get polling station by ID
+// GET /api/polling-stations/stats - Get polling station statistics
+router.get('/stats', authenticateToken, async (req, res, next) => {
+  try {
+    const { countyId, constituencyId } = req.query as any;
+
+    const where: any = { isActive: true };
+    if (countyId) where.constituency = { countyId };
+    if (constituencyId) where.constituencyId = constituencyId;
+
+    const [totalCount, byCounty, byConstituency, voterStats] =
+      await Promise.all([
+        prisma.pollingStation.count({ where }),
+        prisma.pollingStation.groupBy({
+          by: ['constituencyId'],
+          where,
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 10,
+        }),
+        prisma.pollingStation.groupBy({
+          by: ['cawId'],
+          where,
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 10,
+        }),
+        prisma.voterRegistration.aggregate({
+          where: {
+            pollingStation: { isActive: true },
+          },
+          _sum: { registeredVoters: true },
+          _avg: { registeredVoters: true },
+          _max: { registeredVoters: true },
+          _min: { registeredVoters: true },
+        }),
+      ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalCount,
+        byCounty,
+        byConstituency,
+        voterStats,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Error fetching polling station stats:', error);
+    next(new AppError('Failed to fetch polling station statistics', 500));
+  }
+});
+
+// GET /api/polling-stations/:id - Get polling station by ID (optimized)
 router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { fields } = req.query as any;
+
+    const selectFields = getSelectFields(fields);
 
     const pollingStation = await prisma.pollingStation.findUnique({
-      where: { id },
-      include: {
+      where: { id, isActive: true },
+      select: {
+        ...selectFields,
         constituency: {
-          include: {
-            county: true,
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            county: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
           },
         },
-        caw: true,
+        caw: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
         voterRegistration: {
           where: { isActive: true },
           orderBy: { createdAt: 'desc' },
+          take: 5, // Limit to recent registrations
+          select: {
+            id: true,
+            registeredVoters: true,
+            source: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: {
+            voterRegistration: true,
+          },
         },
       },
     });
@@ -168,7 +358,7 @@ router.get('/:id', authenticateToken, async (req, res, next) => {
   }
 });
 
-// POST /api/polling-stations - Create new polling station
+// POST /api/polling-stations - Create new polling station (optimized)
 router.post(
   '/',
   authenticateToken,
@@ -188,369 +378,239 @@ router.post(
         registeredVoters,
       } = req.body;
 
-      // Check if polling station code already exists
-      const existingStation = await prisma.pollingStation.findUnique({
-        where: { code },
-      });
+      // Use transaction for data consistency
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if polling station code already exists
+        const existingStation = await tx.pollingStation.findUnique({
+          where: { code },
+          select: { id: true },
+        });
 
-      if (existingStation) {
-        return next(
-          new AppError('Polling station with this code already exists', 400)
-        );
-      }
+        if (existingStation) {
+          throw new AppError(
+            'Polling station with this code already exists',
+            400
+          );
+        }
 
-      // Verify constituency and CAW exist and are related
-      const constituency = await prisma.constituency.findUnique({
-        where: { id: constituencyId },
-        include: { caws: true },
-      });
-
-      if (!constituency) {
-        return next(new AppError('Constituency not found', 404));
-      }
-
-      const caw = constituency.caws.find((c) => c.id === cawId);
-      if (!caw) {
-        return next(
-          new AppError(
-            'CAW not found or not associated with this constituency',
-            404
-          )
-        );
-      }
-
-      const pollingStation = await prisma.pollingStation.create({
-        data: {
-          code,
-          name,
-          constituencyId,
-          cawId,
-          latitude,
-          longitude,
-          address,
-        },
-        include: {
-          constituency: {
-            include: {
-              county: true,
+        // Verify constituency and CAW exist and are related (optimized query)
+        const constituency = await tx.constituency.findUnique({
+          where: { id: constituencyId },
+          select: {
+            id: true,
+            caws: {
+              where: { id: cawId },
+              select: { id: true },
             },
           },
-          caw: true,
-        },
-      });
+        });
 
-      // Create voter registration record if provided
-      if (registeredVoters && registeredVoters > 0) {
-        await prisma.voterRegistration.create({
+        if (!constituency) {
+          throw new AppError('Constituency not found', 404);
+        }
+
+        if (constituency.caws.length === 0) {
+          throw new AppError(
+            'CAW not found or not associated with this constituency',
+            404
+          );
+        }
+
+        // Create polling station
+        const pollingStation = await tx.pollingStation.create({
           data: {
-            pollingStationId: pollingStation.id,
-            registeredVoters,
-            source: 'Manual Entry',
+            code,
+            name,
+            constituencyId,
+            cawId,
+            latitude,
+            longitude,
+            address,
+          },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            latitude: true,
+            longitude: true,
+            address: true,
+            constituency: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                county: {
+                  select: {
+                    id: true,
+                    code: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            caw: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
+            },
           },
         });
-      }
 
-      logger.info(
-        `Polling station created: ${pollingStation.code} - ${pollingStation.name}`
-      );
+        // Create voter registration record if provided
+        if (registeredVoters && registeredVoters > 0) {
+          await tx.voterRegistration.create({
+            data: {
+              pollingStationId: pollingStation.id,
+              registeredVoters,
+              source: 'Manual Entry',
+            },
+          });
+        }
+
+        return pollingStation;
+      });
+
+      logger.info(`Polling station created: ${result.code} - ${result.name}`);
 
       res.status(201).json({
         success: true,
-        data: pollingStation,
+        data: result,
         message: 'Polling station created successfully',
       });
     } catch (error: any) {
+      if (error instanceof AppError) {
+        return next(error);
+      }
       logger.error('Error creating polling station:', error);
       next(new AppError('Failed to create polling station', 500));
     }
   }
 );
 
-// POST /api/polling-stations/bulk-upload - Bulk upload polling stations
-router.post(
-  '/bulk-upload',
-  authenticateToken,
-  requireAdmin,
-  logUserAction('BULK_UPLOAD', 'POLLING_STATION'),
-  validateRequest(bulkUploadSchema),
-  async (req, res, next) => {
-    try {
-      const { pollingStations } = req.body;
-
-      logger.info(
-        `Starting bulk upload of ${pollingStations.length} polling stations`
-      );
-
-      const results = {
-        total: pollingStations.length,
-        successful: 0,
-        failed: 0,
-        errors: [] as any[],
-        created: [] as any[],
-      };
-
-      // Process in batches to avoid memory issues
-      const batchSize = 100;
-      for (let i = 0; i < pollingStations.length; i += batchSize) {
-        const batch = pollingStations.slice(i, i + batchSize);
-
-        for (const stationData of batch) {
-          try {
-            // Find or create county
-            let county = await prisma.county.findFirst({
-              where: {
-                OR: [
-                  { code: stationData.countyCode },
-                  {
-                    name: {
-                      equals: stationData.countyName,
-                      mode: 'insensitive',
-                    },
-                  },
-                ],
-              },
-            });
-
-            if (!county) {
-              county = await prisma.county.create({
-                data: {
-                  code: stationData.countyCode,
-                  name: stationData.countyName,
-                },
-              });
-              logger.info(`Created county: ${county.code} - ${county.name}`);
-            }
-
-            // Find or create constituency
-            let constituency = await prisma.constituency.findFirst({
-              where: {
-                OR: [
-                  { code: stationData.constCode },
-                  {
-                    name: {
-                      equals: stationData.constName,
-                      mode: 'insensitive',
-                    },
-                  },
-                ],
-                countyId: county.id,
-              },
-            });
-
-            if (!constituency) {
-              constituency = await prisma.constituency.create({
-                data: {
-                  code: stationData.constCode,
-                  name: stationData.constName,
-                  countyId: county.id,
-                },
-              });
-              logger.info(
-                `Created constituency: ${constituency.code} - ${constituency.name}`
-              );
-            }
-
-            // Find or create CAW
-            let caw = await prisma.cAW.findFirst({
-              where: {
-                OR: [
-                  { code: stationData.cawCode },
-                  {
-                    name: { equals: stationData.cawName, mode: 'insensitive' },
-                  },
-                ],
-                constituencyId: constituency.id,
-              },
-            });
-
-            if (!caw) {
-              caw = await prisma.cAW.create({
-                data: {
-                  code: stationData.cawCode,
-                  name: stationData.cawName,
-                  constituencyId: constituency.id,
-                },
-              });
-              logger.info(`Created CAW: ${caw.code} - ${caw.name}`);
-            }
-
-            // Check if polling station already exists
-            const existingStation = await prisma.pollingStation.findUnique({
-              where: { code: stationData.pollingStationCode },
-            });
-
-            if (existingStation) {
-              results.failed++;
-              results.errors.push({
-                code: stationData.pollingStationCode,
-                name: stationData.pollingStationName,
-                error: 'Polling station already exists',
-              });
-              continue;
-            }
-
-            // Create polling station
-            const pollingStation = await prisma.pollingStation.create({
-              data: {
-                code: stationData.pollingStationCode,
-                name: stationData.pollingStationName,
-                constituencyId: constituency.id,
-                cawId: caw.id,
-                address: stationData.regCentreName,
-              },
-            });
-
-            // Create voter registration record
-            if (stationData.registeredVoters > 0) {
-              await prisma.voterRegistration.create({
-                data: {
-                  pollingStationId: pollingStation.id,
-                  registeredVoters: stationData.registeredVoters,
-                  source: 'IEBC Import',
-                },
-              });
-            }
-
-            results.successful++;
-            results.created.push({
-              code: pollingStation.code,
-              name: pollingStation.name,
-              county: county.name,
-              constituency: constituency.name,
-              caw: caw.name,
-              registeredVoters: stationData.registeredVoters,
-            });
-          } catch (error: any) {
-            results.failed++;
-            results.errors.push({
-              code: stationData.pollingStationCode,
-              name: stationData.pollingStationName,
-              error: error.message,
-            });
-            logger.error(
-              `Error processing polling station ${stationData.pollingStationCode}:`,
-              error
-            );
-          }
-        }
-      }
-
-      logger.info(
-        `Bulk upload completed: ${results.successful} successful, ${results.failed} failed`
-      );
-
-      res.json({
-        success: true,
-        data: results,
-        message: `Bulk upload completed: ${results.successful} successful, ${results.failed} failed`,
-      });
-    } catch (error: any) {
-      logger.error('Error in bulk upload:', error);
-      next(new AppError('Failed to process bulk upload', 500));
-    }
-  }
-);
-
-// PUT /api/polling-stations/:id - Update polling station
+// PUT /api/polling-stations/:id - Update polling station (optimized)
 router.put(
   '/:id',
   authenticateToken,
   requireAdmin,
   logUserAction('UPDATE', 'POLLING_STATION'),
-  validateRequest(createPollingStationSchema),
+  validateRequest(updatePollingStationSchema),
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const {
-        code,
-        name,
-        constituencyId,
-        cawId,
-        latitude,
-        longitude,
-        address,
-      } = req.body;
+      const updateData = req.body;
 
-      // Check if polling station exists
-      const existingStation = await prisma.pollingStation.findUnique({
-        where: { id },
-      });
-
-      if (!existingStation) {
-        return next(new AppError('Polling station not found', 404));
-      }
-
-      // Check if code is being changed and if new code already exists
-      if (code !== existingStation.code) {
-        const codeExists = await prisma.pollingStation.findUnique({
-          where: { code },
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if polling station exists
+        const existingStation = await tx.pollingStation.findUnique({
+          where: { id, isActive: true },
+          select: { id: true, code: true },
         });
 
-        if (codeExists) {
-          return next(
-            new AppError('Polling station with this code already exists', 400)
-          );
+        if (!existingStation) {
+          throw new AppError('Polling station not found', 404);
         }
-      }
 
-      // Verify constituency and CAW exist and are related
-      const constituency = await prisma.constituency.findUnique({
-        where: { id: constituencyId },
-        include: { caws: true },
-      });
+        // Check if code is being changed and if new code already exists
+        if (updateData.code && updateData.code !== existingStation.code) {
+          const codeExists = await tx.pollingStation.findUnique({
+            where: { code: updateData.code },
+            select: { id: true },
+          });
 
-      if (!constituency) {
-        return next(new AppError('Constituency not found', 404));
-      }
+          if (codeExists) {
+            throw new AppError(
+              'Polling station with this code already exists',
+              400
+            );
+          }
+        }
 
-      const caw = constituency.caws.find((c) => c.id === cawId);
-      if (!caw) {
-        return next(
-          new AppError(
-            'CAW not found or not associated with this constituency',
-            404
-          )
-        );
-      }
+        // Verify constituency and CAW if being updated
+        if (updateData.constituencyId || updateData.cawId) {
+          const constituencyId = updateData.constituencyId;
+          const cawId = updateData.cawId;
 
-      const pollingStation = await prisma.pollingStation.update({
-        where: { id },
-        data: {
-          code,
-          name,
-          constituencyId,
-          cawId,
-          latitude,
-          longitude,
-          address,
-        },
-        include: {
-          constituency: {
-            include: {
-              county: true,
+          const constituency = await tx.constituency.findUnique({
+            where: { id: constituencyId },
+            select: {
+              id: true,
+              caws: {
+                where: { id: cawId },
+                select: { id: true },
+              },
+            },
+          });
+
+          if (!constituency) {
+            throw new AppError('Constituency not found', 404);
+          }
+
+          if (constituency.caws.length === 0) {
+            throw new AppError(
+              'CAW not found or not associated with this constituency',
+              404
+            );
+          }
+        }
+
+        // Update polling station
+        const pollingStation = await tx.pollingStation.update({
+          where: { id },
+          data: updateData,
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            latitude: true,
+            longitude: true,
+            address: true,
+            constituency: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                county: {
+                  select: {
+                    id: true,
+                    code: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            caw: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+              },
             },
           },
-          caw: true,
-        },
+        });
+
+        return pollingStation;
       });
 
-      logger.info(
-        `Polling station updated: ${pollingStation.code} - ${pollingStation.name}`
-      );
+      logger.info(`Polling station updated: ${result.code} - ${result.name}`);
 
       res.json({
         success: true,
-        data: pollingStation,
+        data: result,
         message: 'Polling station updated successfully',
       });
     } catch (error: any) {
+      if (error instanceof AppError) {
+        return next(error);
+      }
       logger.error('Error updating polling station:', error);
       next(new AppError('Failed to update polling station', 500));
     }
   }
 );
 
-// DELETE /api/polling-stations/:id - Delete polling station
+// DELETE /api/polling-stations/:id - Delete polling station (soft delete)
 router.delete(
   '/:id',
   authenticateToken,
@@ -560,9 +620,9 @@ router.delete(
     try {
       const { id } = req.params;
 
-      // Check if polling station exists
       const existingStation = await prisma.pollingStation.findUnique({
-        where: { id },
+        where: { id, isActive: true },
+        select: { id: true, code: true, name: true },
       });
 
       if (!existingStation) {
@@ -586,6 +646,282 @@ router.delete(
     } catch (error: any) {
       logger.error('Error deleting polling station:', error);
       next(new AppError('Failed to delete polling station', 500));
+    }
+  }
+);
+
+// POST /api/polling-stations/bulk-upload - Optimized bulk upload
+router.post(
+  '/bulk-upload',
+  authenticateToken,
+  requireAdmin,
+  logUserAction('BULK_UPLOAD', 'POLLING_STATION'),
+  validateRequest(bulkUploadSchema),
+  async (req, res, next) => {
+    try {
+      const { pollingStations } = req.body;
+
+      logger.info(
+        `Starting bulk upload of ${pollingStations.length} polling stations`
+      );
+
+      const results = {
+        total: pollingStations.length,
+        successful: 0,
+        failed: 0,
+        errors: [] as any[],
+        created: [] as any[],
+      };
+
+      // Process in optimized batches
+      const batchSize = 500; // Increased batch size for better performance
+
+      for (let i = 0; i < pollingStations.length; i += batchSize) {
+        const batch = pollingStations.slice(i, i + batchSize);
+
+        // Process batch in parallel
+        const batchPromises = batch.map(async (stationData: any) => {
+          try {
+            return await prisma.$transaction(async (tx) => {
+              // Find or create county (optimized)
+              let county = await tx.county.findFirst({
+                where: {
+                  OR: [
+                    { code: stationData.countyCode },
+                    {
+                      name: {
+                        equals: stationData.countyName,
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                },
+                select: { id: true, code: true, name: true },
+              });
+
+              if (!county) {
+                county = await tx.county.create({
+                  data: {
+                    code: stationData.countyCode,
+                    name: stationData.countyName,
+                  },
+                  select: { id: true, code: true, name: true },
+                });
+              }
+
+              // Find or create constituency (optimized)
+              let constituency = await tx.constituency.findFirst({
+                where: {
+                  OR: [
+                    { code: stationData.constCode },
+                    {
+                      name: {
+                        equals: stationData.constName,
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                  countyId: county.id,
+                },
+                select: { id: true, code: true, name: true },
+              });
+
+              if (!constituency) {
+                constituency = await tx.constituency.create({
+                  data: {
+                    code: stationData.constCode,
+                    name: stationData.constName,
+                    countyId: county.id,
+                  },
+                  select: { id: true, code: true, name: true },
+                });
+              }
+
+              // Find or create CAW (optimized)
+              let caw = await tx.cAW.findFirst({
+                where: {
+                  OR: [
+                    { code: stationData.cawCode },
+                    {
+                      name: {
+                        equals: stationData.cawName,
+                        mode: 'insensitive',
+                      },
+                    },
+                  ],
+                  constituencyId: constituency.id,
+                },
+                select: { id: true, code: true, name: true },
+              });
+
+              if (!caw) {
+                caw = await tx.cAW.create({
+                  data: {
+                    code: stationData.cawCode,
+                    name: stationData.cawName,
+                    constituencyId: constituency.id,
+                  },
+                  select: { id: true, code: true, name: true },
+                });
+              }
+
+              // Check if polling station already exists
+              const existingStation = await tx.pollingStation.findUnique({
+                where: { code: stationData.pollingStationCode },
+                select: { id: true },
+              });
+
+              if (existingStation) {
+                throw new Error('Polling station already exists');
+              }
+
+              // Create polling station
+              const pollingStation = await tx.pollingStation.create({
+                data: {
+                  code: stationData.pollingStationCode,
+                  name: stationData.pollingStationName,
+                  constituencyId: constituency.id,
+                  cawId: caw.id,
+                  address: stationData.regCentreName,
+                },
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                },
+              });
+
+              // Create voter registration record
+              if (stationData.registeredVoters > 0) {
+                await tx.voterRegistration.create({
+                  data: {
+                    pollingStationId: pollingStation.id,
+                    registeredVoters: stationData.registeredVoters,
+                    source: 'IEBC Import',
+                  },
+                });
+              }
+
+              return {
+                code: pollingStation.code,
+                name: pollingStation.name,
+                county: county.name,
+                constituency: constituency.name,
+                caw: caw.name,
+                registeredVoters: stationData.registeredVoters,
+              };
+            });
+          } catch (error: any) {
+            throw {
+              code: stationData.pollingStationCode,
+              name: stationData.pollingStationName,
+              error: error.message,
+            };
+          }
+        });
+
+        // Wait for batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        batchResults.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            results.successful++;
+            results.created.push(result.value);
+          } else {
+            results.failed++;
+            results.errors.push(result.reason);
+          }
+        });
+      }
+
+      logger.info(
+        `Bulk upload completed: ${results.successful} successful, ${results.failed} failed`
+      );
+
+      res.json({
+        success: true,
+        data: results,
+        message: `Bulk upload completed: ${results.successful} successful, ${results.failed} failed`,
+      });
+    } catch (error: any) {
+      logger.error('Error in bulk upload:', error);
+      next(new AppError('Failed to process bulk upload', 500));
+    }
+  }
+);
+
+// POST /api/polling-stations/bulk-update - Bulk update polling stations
+router.post(
+  '/bulk-update',
+  authenticateToken,
+  requireAdmin,
+  logUserAction('BULK_UPDATE', 'POLLING_STATION'),
+  validateRequest(
+    Joi.object({
+      updates: Joi.array()
+        .items(
+          Joi.object({
+            id: Joi.string().required(),
+            data: updatePollingStationSchema.required(),
+          })
+        )
+        .min(1)
+        .max(1000)
+        .required(),
+    })
+  ),
+  async (req, res, next) => {
+    try {
+      const { updates } = req.body;
+
+      const results = {
+        total: updates.length,
+        successful: 0,
+        failed: 0,
+        errors: [] as any[],
+      };
+
+      // Process in batches
+      const batchSize = 100;
+      for (let i = 0; i < updates.length; i += batchSize) {
+        const batch = updates.slice(i, i + batchSize);
+
+        const batchPromises = batch.map(async (update: any) => {
+          try {
+            await prisma.pollingStation.update({
+              where: { id: update.id, isActive: true },
+              data: update.data,
+            });
+            return { id: update.id, success: true };
+          } catch (error: any) {
+            return {
+              id: update.id,
+              success: false,
+              error: error.message,
+            };
+          }
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+
+        batchResults.forEach((result) => {
+          if (result.success) {
+            results.successful++;
+          } else {
+            results.failed++;
+            results.errors.push(result);
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        data: results,
+        message: `Bulk update completed: ${results.successful} successful, ${results.failed} failed`,
+      });
+    } catch (error: any) {
+      logger.error('Error in bulk update:', error);
+      next(new AppError('Failed to process bulk update', 500));
     }
   }
 );

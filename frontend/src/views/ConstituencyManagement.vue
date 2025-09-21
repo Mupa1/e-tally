@@ -1,590 +1,541 @@
 <template>
   <MainLayout
     page-title="Constituency Management"
-    page-subtitle="Manage constituencies"
+    page-subtitle="Manage constituencies efficiently with optimized performance"
   >
     <!-- Error Alert -->
     <div
       v-if="constituencyManagementStore.error"
-      class="alert alert-danger alert-dismissible fade show"
-      role="alert"
+      class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4"
     >
-      <i class="fas fa-exclamation-circle me-2"></i>
-      {{ constituencyManagementStore.error }}
-      <button
-        type="button"
-        class="btn-close"
-        @click="constituencyManagementStore.clearError()"
-      ></button>
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+        <span class="text-red-800 font-medium">{{
+          constituencyManagementStore.error
+        }}</span>
+        <button
+          type="button"
+          @click="constituencyManagementStore.clearError()"
+          class="ml-auto text-red-400 hover:text-red-600 transition-colors duration-200"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-landmark text-blue-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">
+              Total Constituencies
+            </p>
+            <p class="text-2xl font-semibold text-gray-900">
+              {{ constituencyManagementStore.totalConstituencies }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-building text-green-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Wards</p>
+            <p class="text-2xl font-semibold text-gray-900">
+              {{ constituencyManagementStore.stats?.byCAW?.length || 0 }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-poll text-purple-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Polling Stations</p>
+            <p class="text-2xl font-semibold text-gray-900">
+              {{
+                constituencyManagementStore.stats?.voterStats?._sum
+                  ?.registeredVoters || 0
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center"
+            >
+              <i class="fas fa-users text-orange-600 text-xl"></i>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Avg Voters</p>
+            <p class="text-2xl font-semibold text-gray-900">
+              {{
+                Math.round(
+                  constituencyManagementStore.stats?.voterStats?._avg
+                    ?.registeredVoters || 0
+                )
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Action Bar -->
-    <div class="action-bar">
-      <div class="row align-items-center">
-        <div class="col-md-3">
-          <div class="search-box">
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="fas fa-search"></i>
-              </span>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+      <div class="p-6">
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+        >
+          <!-- Search -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Search</label
+            >
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
               <input
                 type="text"
-                class="form-control"
+                class="w-full h-12 pl-10 pr-4 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                 placeholder="Search constituencies..."
                 v-model="searchQuery"
                 @input="handleSearch"
               />
             </div>
           </div>
-        </div>
-        <div class="col-md-3">
-          <div class="county-filter">
-            <select
+
+          <!-- County Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >County</label
+            >
+            <FormSelect
               v-model="selectedCountyId"
-              @change="handleCountyFilter"
-              class="form-select form-select-sm"
-            >
-              <option value="">All Counties</option>
-              <option
-                v-for="county in counties"
-                :key="county.id"
-                :value="county.id"
-              >
-                {{ county.name }}
-              </option>
-            </select>
+              :options="countyOptions"
+              placeholder="All Counties"
+              @update:model-value="handleCountyFilter"
+              button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+            />
           </div>
-        </div>
-        <div class="col-md-3">
-          <div class="page-size-selector">
-            <label class="form-label me-2 mb-0">Show:</label>
-            <select
-              v-model="pageSize"
-              @change="handlePageSizeChange"
-              class="form-select form-select-sm"
-              style="width: auto; display: inline-block"
+
+          <!-- Page Size -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Show</label
             >
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-            </select>
+            <FormSelect
+              v-model="pageSizeOption"
+              :options="pageSizeOptions"
+              @update:model-value="handlePageSizeChange"
+              button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+            />
           </div>
-        </div>
-        <div class="col-md-3 text-end">
-          <button
-            class="btn btn-primary"
-            @click="showCreateModal = true"
-            :disabled="constituencyManagementStore.loading"
-          >
-            <i class="fas fa-plus me-2"></i>
-            Add Constituency
-          </button>
+
+          <!-- Actions -->
+          <div class="flex gap-2">
+            <button
+              @click="constituencyManagementStore.toggleCursorPagination()"
+              :class="[
+                'inline-flex items-center px-4 py-2 border rounded-lg text-sm font-medium transition-colors duration-200',
+                constituencyManagementStore.useCursorPagination
+                  ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
+              ]"
+            >
+              <i class="fas fa-arrows-alt mr-2"></i>
+              {{
+                constituencyManagementStore.useCursorPagination
+                  ? 'Cursor'
+                  : 'Page'
+              }}
+            </button>
+            <button
+              @click="showCreateModal = true"
+              :disabled="constituencyManagementStore.loading"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Add Constituency
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Constituencies Table -->
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title mb-0">
-          <i class="fas fa-map me-2"></i>
-          Constituencies
-          <span class="badge bg-primary ms-2">{{
-            constituencyManagementStore.totalConstituencies
-          }}</span>
-        </h5>
-      </div>
-      <div class="card-body p-0">
-        <div v-if="constituencyManagementStore.loading" class="text-center p-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">Loading constituencies...</p>
-        </div>
-
-        <div
-          v-else-if="!constituencyManagementStore.hasConstituencies"
-          class="text-center p-4"
-        >
-          <i class="fas fa-map fa-3x text-muted mb-3"></i>
-          <h5>No constituencies found</h5>
-          <p class="text-muted">
-            Get started by adding your first constituency.
-          </p>
-          <button class="btn btn-primary" @click="showCreateModal = true">
-            <i class="fas fa-plus me-2"></i>
-            Add Constituency
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+    >
+      <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-landmark mr-2 text-indigo-600"></i>
+            Constituencies
+            <span
+              class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+            >
+              {{ constituencyManagementStore.totalConstituencies }}
+            </span>
+          </h3>
+          <button
+            @click="refreshData"
+            :disabled="constituencyManagementStore.loading"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          >
+            <i
+              class="fas fa-sync-alt mr-2"
+              :class="{ 'fa-spin': constituencyManagementStore.loading }"
+            ></i>
+            Refresh
           </button>
         </div>
+      </div>
 
-        <div v-else class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th @click="handleSort('code')" class="sortable">
-                  Code
-                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'code'"></i>
-                  <i
-                    class="fas fa-sort-up ms-1"
-                    v-else-if="sortOrder === 'asc'"
-                  ></i>
-                  <i class="fas fa-sort-down ms-1" v-else></i>
-                </th>
-                <th @click="handleSort('name')" class="sortable">
-                  Name
-                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'name'"></i>
-                  <i
-                    class="fas fa-sort-up ms-1"
-                    v-else-if="sortOrder === 'asc'"
-                  ></i>
-                  <i class="fas fa-sort-down ms-1" v-else></i>
-                </th>
-                <th @click="handleSort('county.name')" class="sortable">
-                  County
-                  <i
-                    class="fas fa-sort ms-1"
-                    v-if="sortBy !== 'county.name'"
-                  ></i>
-                  <i
-                    class="fas fa-sort-up ms-1"
-                    v-else-if="sortOrder === 'asc'"
-                  ></i>
-                  <i class="fas fa-sort-down ms-1" v-else></i>
-                </th>
-                <th>Wards</th>
-                <th>Polling Stations</th>
-                <th @click="handleSort('createdAt')" class="sortable">
-                  Created
-                  <i class="fas fa-sort ms-1" v-if="sortBy !== 'createdAt'"></i>
-                  <i
-                    class="fas fa-sort-up ms-1"
-                    v-else-if="sortOrder === 'asc'"
-                  ></i>
-                  <i class="fas fa-sort-down ms-1" v-else></i>
-                </th>
-                <th width="120">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="constituency in constituencyManagementStore.filteredConstituencies"
-                :key="constituency.id"
-              >
-                <td>
-                  <span class="badge bg-secondary">{{
-                    constituency.code
-                  }}</span>
-                </td>
-                <td>
-                  <strong>{{ constituency.name }}</strong>
-                </td>
-                <td>
-                  <div>
-                    <strong>{{ constituency.county.code }}</strong>
-                    <br />
-                    <small class="text-muted">{{
-                      constituency.county.name
-                    }}</small>
-                  </div>
-                </td>
-                <td>
-                  <span class="badge bg-info">{{
-                    constituency._count?.caws || 0
-                  }}</span>
-                </td>
-                <td>
-                  <span class="badge bg-success">{{
-                    constituency._count?.pollingStations || 0
-                  }}</span>
-                </td>
-                <td>
-                  <small class="text-muted">
-                    {{ formatDate(constituency.createdAt) }}
-                  </small>
-                </td>
-                <td>
-                  <div class="btn-group btn-group-sm">
-                    <button
-                      class="btn btn-outline-primary"
-                      @click="viewConstituency(constituency)"
-                      title="View Details"
-                    >
-                      <i class="fas fa-eye"></i>
-                    </button>
-                    <button
-                      class="btn btn-outline-warning"
-                      @click="editConstituency(constituency)"
-                      title="Edit Constituency"
-                    >
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button
-                      class="btn btn-outline-danger"
-                      @click="deleteConstituency(constituency)"
-                      :title="
-                        (constituency._count?.caws ?? 0) > 0
-                          ? 'Cannot delete - has wards'
-                          : 'Delete Constituency'
-                      "
-                      :disabled="(constituency._count?.caws ?? 0) > 0"
-                    >
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div v-if="constituencyManagementStore.loading" class="text-center p-8">
+        <div
+          class="inline-flex items-center justify-center w-8 h-8 text-indigo-600"
+        >
+          <i class="fas fa-spinner fa-spin text-2xl"></i>
         </div>
+        <p class="mt-2 text-gray-600">Loading constituencies...</p>
+      </div>
+
+      <div
+        v-else-if="!constituencyManagementStore.hasConstituencies"
+        class="text-center p-8"
+      >
+        <i class="fas fa-landmark fa-3x text-gray-300 mb-4"></i>
+        <h4 class="text-lg font-medium text-gray-900 mb-2">
+          No constituencies found
+        </h4>
+        <p class="text-gray-600 mb-4">
+          Get started by adding your first constituency.
+        </p>
+        <button
+          @click="showCreateModal = true"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          Add Constituency
+        </button>
+      </div>
+
+      <div v-else class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                @click="handleSort('code')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+              >
+                Code
+                <i class="fas fa-sort ml-1" v-if="sortBy !== 'code'"></i>
+                <i
+                  class="fas fa-sort-up ml-1"
+                  v-else-if="sortOrder === 'asc'"
+                ></i>
+                <i class="fas fa-sort-down ml-1" v-else></i>
+              </th>
+              <th
+                @click="handleSort('name')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+              >
+                Name
+                <i class="fas fa-sort ml-1" v-if="sortBy !== 'name'"></i>
+                <i
+                  class="fas fa-sort-up ml-1"
+                  v-else-if="sortOrder === 'asc'"
+                ></i>
+                <i class="fas fa-sort-down ml-1" v-else></i>
+              </th>
+              <th
+                @click="handleSort('county.name')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+              >
+                County
+                <i class="fas fa-sort ml-1" v-if="sortBy !== 'county.name'"></i>
+                <i
+                  class="fas fa-sort-up ml-1"
+                  v-else-if="sortOrder === 'asc'"
+                ></i>
+                <i class="fas fa-sort-down ml-1" v-else></i>
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Wards
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Polling Stations
+              </th>
+              <th
+                @click="handleSort('createdAt')"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+              >
+                Created
+                <i class="fas fa-sort ml-1" v-if="sortBy !== 'createdAt'"></i>
+                <i
+                  class="fas fa-sort-up ml-1"
+                  v-else-if="sortOrder === 'asc'"
+                ></i>
+                <i class="fas fa-sort-down ml-1" v-else></i>
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr
+              v-for="constituency in constituencyManagementStore.filteredConstituencies"
+              :key="constituency.id"
+              class="hover:bg-gray-50 transition-colors duration-200"
+            >
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                >
+                  {{ constituency.code }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ constituency.name }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">
+                  <div class="font-medium">{{ constituency.county.code }}</div>
+                  <div class="text-gray-500">
+                    {{ constituency.county.name }}
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ constituency._count?.caws || 0 }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  {{ constituency._count?.pollingStations || 0 }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatDate(constituency.createdAt) }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <div class="flex items-center justify-end space-x-2">
+                  <button
+                    @click="viewConstituency(constituency)"
+                    class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"
+                    title="View Details"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button
+                    @click="editConstituency(constituency)"
+                    class="text-yellow-600 hover:text-yellow-900 transition-colors duration-200"
+                    title="Edit Constituency"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    @click="deleteConstituency(constituency)"
+                    :title="
+                      (constituency._count?.caws ?? 0) > 0
+                        ? 'Cannot delete - has wards'
+                        : 'Delete Constituency'
+                    "
+                    :disabled="(constituency._count?.caws ?? 0) > 0"
+                    class="text-red-600 hover:text-red-900 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Pagination -->
       <div
-        v-if="constituencyManagementStore.pagination.totalPages > 1"
-        class="card-footer"
+        v-if="
+          constituencyManagementStore.pagination.totalPages > 1 ||
+          constituencyManagementStore.pagination.hasNextPage
+        "
+        class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6"
       >
-        <nav aria-label="Constituencies pagination">
-          <ul class="pagination pagination-sm justify-content-center mb-0">
-            <li
-              class="page-item"
-              :class="{
-                disabled: constituencyManagementStore.pagination.page === 1,
-              }"
+        <div class="flex items-center justify-between">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <button
+              @click="
+                changePage(constituencyManagementStore.pagination.page - 1)
+              "
+              :disabled="constituencyManagementStore.pagination.page === 1"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <button
-                class="page-link"
-                @click="
-                  changePage(constituencyManagementStore.pagination.page - 1)
-                "
-                :disabled="constituencyManagementStore.pagination.page === 1"
+              Previous
+            </button>
+            <button
+              @click="
+                changePage(constituencyManagementStore.pagination.page + 1)
+              "
+              :disabled="
+                constituencyManagementStore.pagination.page ===
+                constituencyManagementStore.pagination.totalPages
+              "
+              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div
+            class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+          >
+            <div>
+              <p class="text-sm text-gray-700">
+                Showing
+                <span class="font-medium">{{
+                  (constituencyManagementStore.pagination.page - 1) *
+                    constituencyManagementStore.pagination.limit +
+                  1
+                }}</span>
+                to
+                <span class="font-medium">{{
+                  Math.min(
+                    constituencyManagementStore.pagination.page *
+                      constituencyManagementStore.pagination.limit,
+                    constituencyManagementStore.pagination.total
+                  )
+                }}</span>
+                of
+                <span class="font-medium">{{
+                  constituencyManagementStore.pagination.total
+                }}</span>
+                results
+              </p>
+            </div>
+            <div>
+              <nav
+                class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
               >
-                Previous
-              </button>
-            </li>
-
-            <li
-              v-for="page in visiblePages"
-              :key="page"
-              class="page-item"
-              :class="{
-                active: page === constituencyManagementStore.pagination.page,
-              }"
-            >
-              <button class="page-link" @click="changePage(page)">
-                {{ page }}
-              </button>
-            </li>
-
-            <li
-              class="page-item"
-              :class="{
-                disabled:
-                  constituencyManagementStore.pagination.page ===
-                  constituencyManagementStore.pagination.totalPages,
-              }"
-            >
-              <button
-                class="page-link"
-                @click="
-                  changePage(constituencyManagementStore.pagination.page + 1)
-                "
-                :disabled="
-                  constituencyManagementStore.pagination.page ===
-                  constituencyManagementStore.pagination.totalPages
-                "
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
+                <button
+                  @click="
+                    changePage(constituencyManagementStore.pagination.page - 1)
+                  "
+                  :disabled="constituencyManagementStore.pagination.page === 1"
+                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  @click="changePage(page)"
+                  :class="[
+                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200',
+                    page === constituencyManagementStore.pagination.page
+                      ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+                <button
+                  @click="
+                    changePage(constituencyManagementStore.pagination.page + 1)
+                  "
+                  :disabled="
+                    constituencyManagementStore.pagination.page ===
+                    constituencyManagementStore.pagination.totalPages
+                  "
+                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Create Constituency Modal -->
-    <div
-      class="modal fade"
-      :class="{ show: showCreateModal, 'd-block': showCreateModal }"
-      tabindex="-1"
-      v-if="showCreateModal"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-plus me-2"></i>
-              Add New Constituency
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              @click="showCreateModal = false"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="handleCreateConstituency">
-              <div class="mb-3">
-                <label for="constituencyCode" class="form-label"
-                  >Constituency Code *</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="constituencyCode"
-                  v-model="createForm.code"
-                  placeholder="e.g., 001"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="constituencyName" class="form-label"
-                  >Constituency Name *</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="constituencyName"
-                  v-model="createForm.name"
-                  placeholder="e.g., Changamwe"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="countySelect" class="form-label">County *</label>
-                <select
-                  class="form-select"
-                  id="countySelect"
-                  v-model="createForm.countyId"
-                  required
-                >
-                  <option value="">Select a county</option>
-                  <option
-                    v-for="county in counties"
-                    :key="county.id"
-                    :value="county.id"
-                  >
-                    {{ county.name }} ({{ county.code }})
-                  </option>
-                </select>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showCreateModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="handleCreateConstituency"
-              :disabled="
-                constituencyManagementStore.loading ||
-                !createForm.code ||
-                !createForm.name ||
-                !createForm.countyId
-              "
-            >
-              <i
-                class="fas fa-spinner fa-spin me-2"
-                v-if="constituencyManagementStore.loading"
-              ></i>
-              <i class="fas fa-plus me-2" v-else></i>
-              Create Constituency
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CreateConstituencyModal
+      :is-open="showCreateModal"
+      :loading="constituencyManagementStore.loading"
+      @close="showCreateModal = false"
+      @submit="handleCreateConstituency"
+    />
 
     <!-- Edit Constituency Modal -->
-    <div
-      class="modal fade"
-      :class="{ show: showEditModal, 'd-block': showEditModal }"
-      tabindex="-1"
-      v-if="showEditModal"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-edit me-2"></i>
-              Edit Constituency
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              @click="showEditModal = false"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="handleUpdateConstituency">
-              <div class="mb-3">
-                <label for="editConstituencyCode" class="form-label"
-                  >Constituency Code *</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editConstituencyCode"
-                  v-model="editForm.code"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="editConstituencyName" class="form-label"
-                  >Constituency Name *</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editConstituencyName"
-                  v-model="editForm.name"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="editCountySelect" class="form-label"
-                  >County *</label
-                >
-                <select
-                  class="form-select"
-                  id="editCountySelect"
-                  v-model="editForm.countyId"
-                  required
-                >
-                  <option value="">Select a county</option>
-                  <option
-                    v-for="county in counties"
-                    :key="county.id"
-                    :value="county.id"
-                  >
-                    {{ county.name }} ({{ county.code }})
-                  </option>
-                </select>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showEditModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="handleUpdateConstituency"
-              :disabled="
-                constituencyManagementStore.loading ||
-                !editForm.code ||
-                !editForm.name ||
-                !editForm.countyId
-              "
-            >
-              <i
-                class="fas fa-spinner fa-spin me-2"
-                v-if="constituencyManagementStore.loading"
-              ></i>
-              <i class="fas fa-save me-2" v-else></i>
-              Update Constituency
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EditConstituencyModal
+      :is-open="showEditModal"
+      :constituency="selectedConstituency"
+      :loading="constituencyManagementStore.loading"
+      @close="showEditModal = false"
+      @submit="handleUpdateConstituency"
+    />
 
     <!-- View Constituency Modal -->
-    <div
-      class="modal fade"
-      :class="{ show: showViewModal, 'd-block': showViewModal }"
-      tabindex="-1"
-      v-if="showViewModal"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-eye me-2"></i>
-              Constituency Details
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              @click="showViewModal = false"
-            ></button>
-          </div>
-          <div class="modal-body" v-if="selectedConstituency">
-            <div class="row">
-              <div class="col-md-6">
-                <h6>Code</h6>
-                <p class="text-muted">{{ selectedConstituency.code }}</p>
-              </div>
-              <div class="col-md-6">
-                <h6>Name</h6>
-                <p class="text-muted">{{ selectedConstituency.name }}</p>
-              </div>
-              <div class="col-md-6">
-                <h6>County</h6>
-                <p class="text-muted">
-                  {{ selectedConstituency.county.name }} ({{
-                    selectedConstituency.county.code
-                  }})
-                </p>
-              </div>
-              <div class="col-md-6">
-                <h6>Wards</h6>
-                <p class="text-muted">
-                  {{ selectedConstituency._count?.caws || 0 }}
-                </p>
-              </div>
-              <div class="col-md-6">
-                <h6>Polling Stations</h6>
-                <p class="text-muted">
-                  {{ selectedConstituency._count?.pollingStations || 0 }}
-                </p>
-              </div>
-              <div class="col-md-6">
-                <h6>Created</h6>
-                <p class="text-muted">
-                  {{ formatDate(selectedConstituency.createdAt) }}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              @click="showViewModal = false"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              class="btn btn-warning"
-              @click="
-                selectedConstituency && editConstituency(selectedConstituency)
-              "
-            >
-              <i class="fas fa-edit me-2"></i>
-              Edit Constituency
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Backdrop -->
-    <div
-      v-if="showCreateModal || showEditModal || showViewModal"
-      class="modal-backdrop fade show"
-    ></div>
+    <ViewConstituencyModal
+      :is-open="showViewModal"
+      :constituency="selectedConstituency"
+      @close="showViewModal = false"
+      @edit="editConstituency"
+    />
   </MainLayout>
 </template>
 
@@ -594,7 +545,12 @@ import { useAuthStore } from '@/stores/auth';
 import { useConstituencyManagementStore } from '@/stores/constituencyManagement';
 import { useCountyManagementStore } from '@/stores/countyManagement';
 import type { Constituency } from '@/services/constituencyService';
+import type { SelectOption } from '@/components/select/Select.vue';
 import MainLayout from '@/components/MainLayout.vue';
+import FormSelect from '@/components/select/FormSelect.vue';
+import CreateConstituencyModal from '@/components/pages/constituencies/CreateConstituencyModal.vue';
+import EditConstituencyModal from '@/components/pages/constituencies/EditConstituencyModal.vue';
+import ViewConstituencyModal from '@/components/pages/constituencies/ViewConstituencyModal.vue';
 
 const authStore = useAuthStore();
 const constituencyManagementStore = useConstituencyManagementStore();
@@ -609,24 +565,30 @@ const searchQuery = ref('');
 const sortBy = ref('createdAt');
 const sortOrder = ref<'asc' | 'desc'>('desc');
 const pageSize = ref(10);
-const selectedCountyId = ref<string | null>(null);
+const selectedCountyId = ref<SelectOption | null>(null);
 
-// Forms
-const createForm = ref({
-  code: '',
-  name: '',
-  countyId: '',
-});
+// Form options
+const pageSizeOptions = [
+  { id: 10, value: 10, label: '10 per page' },
+  { id: 20, value: 20, label: '20 per page' },
+  { id: 50, value: 50, label: '50 per page' },
+  { id: 100, value: 100, label: '100 per page' },
+];
 
-const editForm = ref({
-  code: '',
-  name: '',
-  countyId: '',
-});
+const pageSizeOption = ref(pageSizeOptions[0]);
 
 // Computed
 const user = computed(() => authStore.user);
 const counties = computed(() => countyManagementStore.counties);
+
+const countyOptions = computed(() => [
+  { id: '', value: '', label: 'All Counties' },
+  ...counties.value.map((county) => ({
+    id: county.id,
+    value: county.id,
+    label: `${county.name} (${county.code})`,
+  })),
+]);
 
 const visiblePages = computed(() => {
   const current = constituencyManagementStore.pagination.page;
@@ -650,7 +612,9 @@ const handleSearch = () => {
 };
 
 const handleCountyFilter = () => {
-  constituencyManagementStore.setSelectedCounty(selectedCountyId.value);
+  constituencyManagementStore.setSelectedCounty(
+    selectedCountyId.value?.value || null
+  );
   constituencyManagementStore.fetchConstituencies({ page: 1 });
 };
 
@@ -671,7 +635,16 @@ const changePage = (page: number) => {
 };
 
 const handlePageSizeChange = () => {
-  constituencyManagementStore.changePageSize(Number(pageSize.value));
+  constituencyManagementStore.changePageSize(pageSizeOption.value?.value || 10);
+};
+
+const refreshData = async () => {
+  await Promise.all([
+    constituencyManagementStore.fetchConstituencies(),
+    constituencyManagementStore.fetchConstituencyStats(
+      selectedCountyId.value?.value || undefined
+    ),
+  ]);
 };
 
 const viewConstituency = (constituency: Constituency) => {
@@ -681,11 +654,6 @@ const viewConstituency = (constituency: Constituency) => {
 
 const editConstituency = (constituency: Constituency) => {
   selectedConstituency.value = constituency;
-  editForm.value = {
-    code: constituency.code,
-    name: constituency.name,
-    countyId: constituency.countyId,
-  };
   showEditModal.value = true;
   showViewModal.value = false;
 };
@@ -707,23 +675,22 @@ const deleteConstituency = async (constituency: Constituency) => {
   }
 };
 
-const handleCreateConstituency = async () => {
+const handleCreateConstituency = async (data: any) => {
   try {
-    await constituencyManagementStore.createConstituency(createForm.value);
+    await constituencyManagementStore.createConstituency(data);
     showCreateModal.value = false;
-    createForm.value = { code: '', name: '', countyId: '' };
   } catch (error) {
     // Error is handled by the store
   }
 };
 
-const handleUpdateConstituency = async () => {
+const handleUpdateConstituency = async (data: any) => {
   if (!selectedConstituency.value) return;
 
   try {
     await constituencyManagementStore.updateConstituency(
       selectedConstituency.value.id,
-      editForm.value
+      data
     );
     showEditModal.value = false;
     selectedConstituency.value = null;
@@ -746,8 +713,8 @@ const formatDate = (dateString: string) => {
 onMounted(async () => {
   // Fetch counties for the dropdown
   await countyManagementStore.fetchCounties({ limit: 1000 });
-  // Fetch constituencies
-  constituencyManagementStore.fetchConstituencies();
+  // Fetch constituencies and stats
+  await refreshData();
 });
 
 // Watch for search query changes
@@ -757,5 +724,12 @@ watch(searchQuery, () => {
   }, 500);
 
   return () => clearTimeout(timeoutId);
+});
+
+// Watch for page size changes
+watch(pageSizeOption, (newOption) => {
+  if (newOption) {
+    handlePageSizeChange();
+  }
 });
 </script>
