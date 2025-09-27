@@ -68,67 +68,34 @@
     </StatisticsGrid>
 
     <!-- Filters and Search -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 relative"
+    >
+      <!-- Clear Button -->
+      <ClearButton :show="hasActiveFilters" @click="clearFilters" />
+
       <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
-              >Search Users</label
-            >
-            <div class="relative flex-1">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-              >
-                <i class="fas fa-search text-gray-400"></i>
-              </div>
-              <input
-                type="text"
-                class="w-full h-12 pl-10 pr-4 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                placeholder="Search by name, email, or username..."
-                v-model="searchTerm"
-                @input="handleSearch"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <div class="space-y-0">
-              <FormSelect
-                v-model="selectedRoleOption"
-                :options="roleOptions"
-                label="Filter by Role"
-                placeholder="All Roles"
-                button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                @change="handleRoleFilterChange"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <div class="space-y-0">
-              <FormSelect
-                v-model="selectedStatusOption"
-                :options="statusOptions"
-                label="Filter by Status"
-                placeholder="All Status"
-                button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                @change="handleStatusFilterChange"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
-              >&nbsp;</label
-            >
-            <Button
-              text="Clear"
-              icon="fas fa-times"
-              icon-position="left"
-              variant="secondary"
-              size="lg"
-              :disabled="!hasActiveFilters"
-              @click="clearFilters"
-              class="w-full h-12"
-            />
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SearchInput
+            v-model="searchTerm"
+            label="Search Users"
+            placeholder="Search by name, email, or username..."
+            @input="handleSearch"
+          />
+          <FormSelect
+            v-model="selectedRoleOption"
+            :options="roleOptions"
+            label="Filter by Role"
+            placeholder="All Roles"
+            @change="handleRoleFilterChange"
+          />
+          <FormSelect
+            v-model="selectedStatusOption"
+            :options="statusOptions"
+            label="Filter by Status"
+            placeholder="All Status"
+            @change="handleStatusFilterChange"
+          />
         </div>
       </div>
     </div>
@@ -152,43 +119,10 @@
     >
       <!-- Header Actions -->
       <template #header-actions>
-        <div class="flex items-center space-x-3">
-          <div class="flex border border-gray-300 rounded-lg overflow-hidden">
-            <button
-              class="px-3 py-2 text-sm font-medium border-r border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
-              @click="changePageSize(10)"
-              :class="{
-                'bg-indigo-600 text-white hover:bg-indigo-700':
-                  pagination.limit === 10,
-                'bg-white text-gray-700': pagination.limit !== 10,
-              }"
-            >
-              10
-            </button>
-            <button
-              class="px-3 py-2 text-sm font-medium border-r border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
-              @click="changePageSize(20)"
-              :class="{
-                'bg-indigo-600 text-white hover:bg-indigo-700':
-                  pagination.limit === 20,
-                'bg-white text-gray-700': pagination.limit !== 20,
-              }"
-            >
-              20
-            </button>
-            <button
-              class="px-3 py-2 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:z-10 transition-colors duration-200"
-              @click="changePageSize(50)"
-              :class="{
-                'bg-indigo-600 text-white hover:bg-indigo-700':
-                  pagination.limit === 50,
-                'bg-white text-gray-700': pagination.limit !== 50,
-              }"
-            >
-              50
-            </button>
-          </div>
-        </div>
+        <PageSizeSelector
+          :current-page-size="pagination.limit"
+          @page-size-change="changePageSize"
+        />
       </template>
     </BulkTable>
 
@@ -221,6 +155,46 @@
       :user="selectedUser"
       @close="showViewModal = false"
     />
+
+    <!-- Bulk Action Confirmations -->
+    <ActionConfirmation
+      :show="showBulkDeleteConfirmation"
+      title="Delete Users"
+      :message="`Are you sure you want to delete ${
+        pendingBulkAction?.users.length || 0
+      } users? This action cannot be undone.`"
+      confirm-text="Delete"
+      action-type="delete"
+      :loading="bulkActionLoading"
+      @confirm="handleBulkActionConfirm"
+      @cancel="handleBulkActionCancel"
+    />
+
+    <ActionConfirmation
+      :show="showBulkActivateConfirmation"
+      title="Activate Users"
+      :message="`Are you sure you want to activate ${
+        pendingBulkAction?.users.length || 0
+      } users?`"
+      confirm-text="Activate"
+      action-type="activate"
+      :loading="bulkActionLoading"
+      @confirm="handleBulkActionConfirm"
+      @cancel="handleBulkActionCancel"
+    />
+
+    <ActionConfirmation
+      :show="showBulkDeactivateConfirmation"
+      title="Deactivate Users"
+      :message="`Are you sure you want to deactivate ${
+        pendingBulkAction?.users.length || 0
+      } users?`"
+      confirm-text="Deactivate"
+      action-type="deactivate"
+      :loading="bulkActionLoading"
+      @confirm="handleBulkActionConfirm"
+      @cancel="handleBulkActionCancel"
+    />
   </MainLayout>
 </template>
 
@@ -234,13 +208,18 @@ import EditUserModal from '@/components/pages/users/EditUserModal.vue';
 import ChangePasswordModal from '@/components/pages/users/ChangePasswordModal.vue';
 import ViewUserModal from '@/components/pages/users/ViewUserModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
-import { FormSelect, type SelectOption } from '@/components/select';
+import { type SelectOption } from '@/components/select';
 import { BulkTable } from '@/components/table';
 import {
   StatisticsGrid,
   StatisticsCardCompact,
 } from '@/components/statistics-card';
 import Button from '@/components/Button.vue';
+import SearchInput from '@/components/SearchInput.vue';
+import FormSelect from '@/components/FormSelect.vue';
+import PageSizeSelector from '@/components/PageSizeSelector.vue';
+import ClearButton from '@/components/ClearButton.vue';
+import ActionConfirmation from '@/components/ActionConfirmation.vue';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
@@ -254,6 +233,16 @@ const selectedUser = ref<User | null>(null);
 const searchTerm = ref('');
 const selectedRoleOption = ref<SelectOption | null>(null);
 const selectedStatusOption = ref<SelectOption | null>(null);
+
+// Bulk action confirmation states
+const showBulkDeleteConfirmation = ref(false);
+const showBulkActivateConfirmation = ref(false);
+const showBulkDeactivateConfirmation = ref(false);
+const pendingBulkAction = ref<{
+  action: string;
+  users: User[];
+} | null>(null);
+const bulkActionLoading = ref(false);
 
 // Computed properties
 const user = computed(() => authStore.user);
@@ -500,28 +489,61 @@ const handleUserAction = (action: string, user: User, index: number) => {
 };
 
 const handleBulkAction = async (action: string, selectedUsers: User[]) => {
-  const selectedUserIds = selectedUsers.map((user) => user.id);
+  // Store the pending action and show appropriate confirmation
+  pendingBulkAction.value = { action, users: selectedUsers };
 
   switch (action) {
     case 'activate':
-      await userManagementStore.bulkActivateUsers(selectedUserIds);
+      showBulkActivateConfirmation.value = true;
       break;
     case 'deactivate':
-      await userManagementStore.bulkDeactivateUsers(selectedUserIds);
+      showBulkDeactivateConfirmation.value = true;
       break;
     case 'delete':
-      if (
-        confirm(
-          `Are you sure you want to delete ${selectedUsers.length} users?`
-        )
-      ) {
-        // For now, delete users one by one since bulkDeleteUsers doesn't exist
-        for (const user of selectedUsers) {
-          await userManagementStore.deleteUser(user.id);
-        }
-      }
+      showBulkDeleteConfirmation.value = true;
       break;
   }
+};
+
+const handleBulkActionConfirm = async () => {
+  if (!pendingBulkAction.value) return;
+
+  const { action, users } = pendingBulkAction.value;
+  const selectedUserIds = users.map((user) => user.id);
+
+  bulkActionLoading.value = true;
+
+  try {
+    switch (action) {
+      case 'activate':
+        await userManagementStore.bulkActivateUsers(selectedUserIds);
+        showBulkActivateConfirmation.value = false;
+        break;
+      case 'deactivate':
+        await userManagementStore.bulkDeactivateUsers(selectedUserIds);
+        showBulkDeactivateConfirmation.value = false;
+        break;
+      case 'delete':
+        // For now, delete users one by one since bulkDeleteUsers doesn't exist
+        for (const user of users) {
+          await userManagementStore.deleteUser(user.id);
+        }
+        showBulkDeleteConfirmation.value = false;
+        break;
+    }
+  } catch (error) {
+    console.error('Error performing bulk action:', error);
+  } finally {
+    bulkActionLoading.value = false;
+    pendingBulkAction.value = null;
+  }
+};
+
+const handleBulkActionCancel = () => {
+  showBulkDeleteConfirmation.value = false;
+  showBulkActivateConfirmation.value = false;
+  showBulkDeactivateConfirmation.value = false;
+  pendingBulkAction.value = null;
 };
 
 const handleSelectionChange = (selectedUsers: User[]) => {
