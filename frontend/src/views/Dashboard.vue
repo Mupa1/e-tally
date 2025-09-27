@@ -4,82 +4,36 @@
     :page-subtitle="`Welcome back, ${user?.firstName || 'User'}!`"
   >
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
-            >
-              <i class="fas fa-users text-blue-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">{{ stats.users }}</h3>
-            <p class="text-gray-600">Active Users</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
-            >
-              <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.counties }}
-            </h3>
-            <p class="text-gray-600">Counties</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
-            >
-              <i class="fas fa-poll text-purple-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.pollingStations }}
-            </h3>
-            <p class="text-gray-600">Polling Stations</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center"
-            >
-              <i class="fas fa-chart-line text-orange-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.uptime }}%
-            </h3>
-            <p class="text-gray-600">System Uptime</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <StatisticsGrid :columns="4" gap="lg" padding="none" class="mb-8">
+      <StatisticsCardCompact
+        name="Active Users"
+        :value="stats.users"
+        format="number"
+        icon="fas fa-users"
+        color="blue"
+      />
+      <StatisticsCardCompact
+        name="Counties"
+        :value="stats.counties"
+        format="number"
+        icon="fas fa-map-marker-alt"
+        color="green"
+      />
+      <StatisticsCardCompact
+        name="Polling Stations"
+        :value="stats.pollingStations"
+        format="number"
+        icon="fas fa-poll"
+        color="purple"
+      />
+      <StatisticsCardCompact
+        name="System Uptime"
+        :value="`${stats.uptime}%`"
+        format="text"
+        icon="fas fa-chart-line"
+        color="orange"
+      />
+    </StatisticsGrid>
 
     <!-- Recent Activity -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -195,6 +149,10 @@ import { useAuthStore } from '@/stores/auth';
 import { useUserManagementStore } from '@/stores/userManagement';
 import { useCountyManagementStore } from '@/stores/countyManagement';
 import MainLayout from '@/components/MainLayout.vue';
+import {
+  StatisticsGrid,
+  StatisticsCardCompact,
+} from '@/components/statistics-card';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();

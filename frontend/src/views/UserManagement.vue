@@ -6,107 +6,66 @@
     <!-- Action Buttons -->
     <div class="flex justify-end mb-6">
       <div class="flex space-x-3">
-        <button
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          @click="showCreateModal = true"
+        <Button
+          text="Add User"
+          icon="fas fa-plus"
+          icon-position="left"
+          variant="secondary"
+          size="md"
           :disabled="!canCreateUser"
-        >
-          <i class="fas fa-plus mr-2"></i>
-          Add User
-        </button>
-        <button
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          @click="refreshUsers"
+          @click="showCreateModal = true"
+        />
+        <Button
+          text="Refresh"
+          icon="fas fa-sync-alt"
+          icon-position="left"
+          variant="secondary"
+          size="md"
           :disabled="loading"
-        >
-          <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': loading }"></i>
-          Refresh
-        </button>
+          :loading="loading"
+          loading-text="Refreshing..."
+          @click="refreshUsers"
+        />
       </div>
     </div>
 
     <!-- Stats Cards -->
-    <div
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
+    <StatisticsGrid
+      :columns="4"
+      gap="lg"
+      padding="none"
+      class="mb-6"
       v-if="stats"
     >
-      <div
-        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center ring-1 ring-blue-100"
-            >
-              <i class="fas fa-users text-blue-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.totalUsers }}
-            </h3>
-            <p class="text-sm text-gray-600 font-medium">Total Users</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center ring-1 ring-green-100"
-            >
-              <i class="fas fa-user-check text-green-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.activeUsers }}
-            </h3>
-            <p class="text-sm text-gray-600 font-medium">Active Users</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center ring-1 ring-red-100"
-            >
-              <i class="fas fa-user-times text-red-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.inactiveUsers }}
-            </h3>
-            <p class="text-sm text-gray-600 font-medium">Inactive Users</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-      >
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center ring-1 ring-purple-100"
-            >
-              <i class="fas fa-user-plus text-purple-600 text-xl"></i>
-            </div>
-          </div>
-          <div class="ml-4">
-            <h3 class="text-2xl font-bold text-gray-900">
-              {{ stats.recentUsers.length }}
-            </h3>
-            <p class="text-sm text-gray-600 font-medium">Recent Users</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      <StatisticsCardCompact
+        name="Total Users"
+        :value="stats.totalUsers"
+        format="number"
+        icon="fas fa-users"
+        color="blue"
+      />
+      <StatisticsCardCompact
+        name="Active Users"
+        :value="stats.activeUsers"
+        format="number"
+        icon="fas fa-user-check"
+        color="green"
+      />
+      <StatisticsCardCompact
+        name="Inactive Users"
+        :value="stats.inactiveUsers"
+        format="number"
+        icon="fas fa-user-times"
+        color="red"
+      />
+      <StatisticsCardCompact
+        name="Recent Users"
+        :value="stats.recentUsers.length"
+        format="number"
+        icon="fas fa-user-plus"
+        color="purple"
+      />
+    </StatisticsGrid>
 
     <!-- Filters and Search -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
@@ -159,13 +118,16 @@
             <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
               >&nbsp;</label
             >
-            <button
-              class="w-full h-12 inline-flex items-center justify-center px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            <Button
+              text="Clear"
+              icon="fas fa-times"
+              icon-position="left"
+              variant="secondary"
+              size="lg"
+              :disabled="!hasActiveFilters"
               @click="clearFilters"
-            >
-              <i class="fas fa-times mr-2"></i>
-              Clear
-            </button>
+              class="w-full h-12"
+            />
           </div>
         </div>
       </div>
@@ -274,6 +236,11 @@ import ViewUserModal from '@/components/pages/users/ViewUserModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
 import { FormSelect, type SelectOption } from '@/components/select';
 import { BulkTable } from '@/components/table';
+import {
+  StatisticsGrid,
+  StatisticsCardCompact,
+} from '@/components/statistics-card';
+import Button from '@/components/Button.vue';
 
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
@@ -295,6 +262,15 @@ const stats = computed(() => userManagementStore.stats);
 const loading = computed(() => userManagementStore.loading);
 const pagination = computed(() => userManagementStore.pagination);
 const selectedUsers = computed(() => userManagementStore.selectedUsers);
+
+// Check if any filters are active
+const hasActiveFilters = computed(() => {
+  return (
+    searchTerm.value.trim() !== '' ||
+    selectedRoleOption.value !== null ||
+    selectedStatusOption.value !== null
+  );
+});
 
 // User roles for dropdown
 const userRoles = computed(() => [
