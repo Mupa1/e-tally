@@ -7,11 +7,11 @@ const Home = () => import('@/views/Home.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 const UserManagement = () =>
   import('@/views/user-management/UserManagement.vue');
-const CountyManagement = () => import('@/views/CountyManagement.vue');
+const CountyManagement = () => import('@/views/election-hierarchy/CountyManagement.vue');
 const ConstituencyManagement = () =>
-  import('@/views/ConstituencyManagement.vue');
-const ElectionHierarchy = () => import('@/views/ElectionHierarchy.vue');
-const UploadErrors = () => import('@/views/UploadErrors.vue');
+  import('@/views/election-hierarchy/ConstituencyManagement.vue');
+const ElectionHierarchy = () => import('@/views/election-hierarchy/ElectionHierarchy.vue');
+const UploadErrors = () => import('@/views/settings/UploadErrors.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -62,7 +62,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/counties/:id',
     name: 'ViewCounty',
-    component: () => import('@/views/ViewCountyPage.vue'),
+    component: () => import('@/views/election-hierarchy/ViewCountyPage.vue'),
     meta: { requiresAuth: true, title: 'County Details - e-Tally' },
   },
   {
@@ -74,7 +74,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/constituencies/:id',
     name: 'ViewConstituency',
-    component: () => import('@/views/ViewConstituencyPage.vue'),
+    component: () => import('@/views/election-hierarchy/ViewConstituencyPage.vue'),
     meta: { requiresAuth: true, title: 'Constituency Details - e-Tally' },
   },
   {
@@ -101,7 +101,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/data-management',
     name: 'DataManagement',
-    component: () => import('@/views/DataManagement.vue'),
+    component: () => import('@/views/settings/DataManagement.vue'),
     meta: { requiresAuth: true, title: 'Data Management - e-Tally' },
   },
   // Catch-all route must be last
