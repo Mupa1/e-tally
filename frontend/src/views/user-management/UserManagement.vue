@@ -105,8 +105,6 @@
       :users="users"
       :pagination="pagination"
       :loading="loading"
-      :can-edit-user="canEditUser"
-      :can-delete-user="canDeleteUser"
       :can-bulk-activate="canBulkActivate"
       :can-bulk-deactivate="canBulkDeactivate"
       :can-bulk-delete="canBulkDelete"
@@ -131,29 +129,6 @@
       v-if="showCreateModal"
       @close="showCreateModal = false"
       @created="handleUserCreated"
-    />
-
-    <!-- Edit User Modal -->
-    <EditUserModal
-      v-if="showEditModal && selectedUser"
-      :user="selectedUser"
-      @close="showEditModal = false"
-      @updated="handleUserUpdated"
-    />
-
-    <!-- Change Password Modal -->
-    <ChangePasswordModal
-      v-if="showPasswordModal && selectedUser"
-      :user="selectedUser"
-      @close="showPasswordModal = false"
-      @updated="handlePasswordChanged"
-    />
-
-    <!-- View User Modal -->
-    <ViewUserModal
-      v-if="showViewModal && selectedUser"
-      :user="selectedUser"
-      @close="showViewModal = false"
     />
 
     <!-- Bulk Action Confirmations -->
@@ -200,13 +175,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useUserManagementStore } from '@/stores/userManagement';
 import type { User, UserRole } from '@/services/userService';
 import CreateUserModal from '@/components/pages/users/CreateUserModal.vue';
-import EditUserModal from '@/components/pages/users/EditUserModal.vue';
-import ChangePasswordModal from '@/components/pages/users/ChangePasswordModal.vue';
-import ViewUserModal from '@/components/pages/users/ViewUserModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
 import { type SelectOption } from '@/components/select';
 import { BulkTable } from '@/components/table';
@@ -221,15 +194,12 @@ import PageSizeSelector from '@/components/PageSizeSelector.vue';
 import ClearButton from '@/components/ClearButton.vue';
 import ActionConfirmation from '@/components/ActionConfirmation.vue';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
 
 // Reactive data
 const showCreateModal = ref(false);
-const showEditModal = ref(false);
-const showPasswordModal = ref(false);
-const showViewModal = ref(false);
-const selectedUser = ref<User | null>(null);
 const searchTerm = ref('');
 const selectedRoleOption = ref<SelectOption | null>(null);
 const selectedStatusOption = ref<SelectOption | null>(null);
@@ -321,20 +291,7 @@ const canCreateUser = computed(() => {
   );
 });
 
-const canEditUser = (targetUser: User) => {
-  if (!user.value) return false;
-  if (user.value.role === 'SUPER_ADMIN') return true;
-  if (user.value.role === 'CENTRAL_COMMAND_ADMIN') return true;
-  if (user.value.role === 'CENTRAL_COMMAND_USER') return true;
-  return false;
-};
-
-const canDeleteUser = (targetUser: User) => {
-  if (!user.value) return false;
-  if (user.value.role !== 'SUPER_ADMIN') return false;
-  if (targetUser.id === user.value.id) return false; // Can't delete self
-  return true;
-};
+// Removed canEditUser and canDeleteUser as they're no longer needed
 
 // Bulk operation permissions
 const canBulkActivate = computed(() => {
@@ -431,44 +388,14 @@ const changePageSize = (limit: number) => {
 // Note: Selection management is now handled by the BulkTable component
 
 const viewUser = (user: User) => {
-  selectedUser.value = user;
-  showViewModal.value = true;
+  router.push(`/users/${user.id}`);
 };
 
-const editUser = (user: User) => {
-  selectedUser.value = user;
-  showEditModal.value = true;
-};
-
-const changeUserPassword = (user: User) => {
-  selectedUser.value = user;
-  showPasswordModal.value = true;
-};
-
-const deleteUser = async (user: User) => {
-  if (
-    confirm(
-      `Are you sure you want to delete ${user.firstName} ${user.lastName}?`
-    )
-  ) {
-    await userManagementStore.deleteUser(user.id);
-  }
-};
+// Removed editUser, changeUserPassword, and deleteUser methods as they're no longer needed
 
 const handleUserCreated = () => {
   showCreateModal.value = false;
   refreshUsers();
-};
-
-const handleUserUpdated = () => {
-  showEditModal.value = false;
-  selectedUser.value = null;
-  refreshUsers();
-};
-
-const handlePasswordChanged = () => {
-  showPasswordModal.value = false;
-  selectedUser.value = null;
 };
 
 const handleUserAction = (action: string, user: User, index: number) => {
@@ -476,15 +403,7 @@ const handleUserAction = (action: string, user: User, index: number) => {
     case 'view':
       viewUser(user);
       break;
-    case 'edit':
-      editUser(user);
-      break;
-    case 'password':
-      changeUserPassword(user);
-      break;
-    case 'delete':
-      deleteUser(user);
-      break;
+    // Removed other actions as they're no longer available in the UI
   }
 };
 

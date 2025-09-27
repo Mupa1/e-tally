@@ -5,7 +5,8 @@ import { useAuthStore } from '@/stores/auth';
 const Login = () => import('@/views/Login.vue');
 const Home = () => import('@/views/Home.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
-const UserManagement = () => import('@/views/UserManagement.vue');
+const UserManagement = () =>
+  import('@/views/user-management/UserManagement.vue');
 const CountyManagement = () => import('@/views/CountyManagement.vue');
 const ConstituencyManagement = () =>
   import('@/views/ConstituencyManagement.vue');
@@ -39,6 +40,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'UserManagement',
     component: UserManagement,
     meta: { requiresAuth: true, title: 'User Management - e-Tally' },
+  },
+  {
+    path: '/users/:id',
+    name: 'ViewUser',
+    component: () => import('@/views/user-management/ViewUserPage.vue'),
+    meta: { requiresAuth: true, title: 'User Details - e-Tally' },
   },
   {
     path: '/counties',

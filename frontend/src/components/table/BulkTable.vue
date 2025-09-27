@@ -63,18 +63,7 @@
       </span>
     </template>
 
-    <!-- Last Login Cell -->
-    <template #cell-lastLogin="{ item }">
-      <span v-if="item.lastLoginAt" class="text-gray-500">
-        {{ formatDate(item.lastLoginAt) }}
-      </span>
-      <span v-else class="text-gray-500">Never</span>
-    </template>
-
-    <!-- Created At Cell -->
-    <template #cell-createdAt="{ item }">
-      <span class="text-gray-500">{{ formatDate(item.createdAt) }}</span>
-    </template>
+    <!-- Removed Last Login and Created At cell templates as columns are no longer displayed -->
 
     <!-- Actions Cell -->
     <template #actions="{ item, index }">
@@ -85,30 +74,6 @@
           title="View User"
         >
           <i class="fas fa-eye text-sm"></i>
-        </button>
-        <button
-          class="text-indigo-600 hover:text-indigo-900 p-1"
-          @click="handleAction('edit', item, index)"
-          :disabled="!canEditUser(item)"
-          title="Edit User"
-        >
-          <i class="fas fa-edit text-sm"></i>
-        </button>
-        <button
-          class="text-indigo-600 hover:text-indigo-900 p-1"
-          @click="handleAction('password', item, index)"
-          :disabled="!canEditUser(item)"
-          title="Change Password"
-        >
-          <i class="fas fa-key text-sm"></i>
-        </button>
-        <button
-          class="text-red-600 hover:text-red-900 p-1"
-          @click="handleAction('delete', item, index)"
-          :disabled="!canDeleteUser(item)"
-          title="Delete User"
-        >
-          <i class="fas fa-trash text-sm"></i>
         </button>
       </div>
     </template>
@@ -235,18 +200,6 @@ const userColumns = computed<TableColumn[]>(() => [
     label: 'Status',
     sortable: true,
     width: '24',
-  },
-  {
-    key: 'lastLogin',
-    label: 'Last Login',
-    sortable: true,
-    width: '32',
-  },
-  {
-    key: 'createdAt',
-    label: 'Created',
-    sortable: true,
-    width: '32',
   },
 ]);
 
