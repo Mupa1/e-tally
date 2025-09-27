@@ -1,31 +1,32 @@
 <template>
-  <div
-    class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-  >
-    <div class="flex items-center">
-      <div class="flex-shrink-0">
-        <div
-          :class="[
-            'w-12 h-12 rounded-lg flex items-center justify-center',
-            iconBgClass,
-          ]"
-        >
-          <i :class="[iconClass, iconColorClass]"></i>
-        </div>
+  <div class="statistics-card-compact" :class="cardClasses">
+    <div class="card-content">
+      <!-- Icon -->
+      <div v-if="icon" class="icon-container" :class="iconClasses">
+        <i :class="icon"></i>
       </div>
-      <div class="ml-4">
-        <p class="text-sm font-medium text-gray-500">{{ name }}</p>
-        <p class="text-2xl font-semibold text-gray-900">{{ formattedValue }}</p>
-        <small v-if="subtitle" class="text-gray-500">{{ subtitle }}</small>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="name">{{ name }}</div>
+        <div class="value" :class="valueClasses">
+          <template v-if="loading">
+            <div class="loading-skeleton"></div>
+          </template>
+          <template v-else>
+            {{ formattedValue }}
+          </template>
+        </div>
+        <div v-if="subtitle" class="subtitle">{{ subtitle }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 
-interface Props {
+interface StatisticsCardCompactProps {
   name: string;
   value: string | number;
   subtitle?: string;
@@ -43,66 +44,117 @@ interface Props {
   loading?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<StatisticsCardCompactProps>(), {
   color: 'blue',
   format: 'text',
   loading: false,
 });
 
-// Computed classes for icon styling
-const iconBgClass = computed(() => {
+const cardClasses = computed(() => {
+  const baseClasses =
+    'bg-white rounded-lg shadow-sm border border-gray-200 p-4 transition-all duration-200 hover:shadow-md';
+  return baseClasses;
+});
+
+const iconClasses = computed(() => {
   const colorMap = {
-    blue: 'bg-blue-100',
-    green: 'bg-green-100',
-    red: 'bg-red-100',
-    yellow: 'bg-yellow-100',
-    purple: 'bg-purple-100',
-    indigo: 'bg-indigo-100',
-    pink: 'bg-pink-100',
-    orange: 'bg-orange-100',
+    blue: 'text-blue-600 bg-blue-50',
+    green: 'text-green-600 bg-green-50',
+    red: 'text-red-600 bg-red-50',
+    yellow: 'text-yellow-600 bg-yellow-50',
+    purple: 'text-purple-600 bg-purple-50',
+    indigo: 'text-indigo-600 bg-indigo-50',
+    pink: 'text-pink-600 bg-pink-50',
+    orange: 'text-orange-600 bg-orange-50',
   };
-  return colorMap[props.color];
+  return `w-10 h-10 rounded-lg flex items-center justify-center ${
+    colorMap[props.color]
+  }`;
 });
 
-const iconColorClass = computed(() => {
+const valueClasses = computed(() => {
   const colorMap = {
-    blue: 'text-blue-600',
-    green: 'text-green-600',
-    red: 'text-red-600',
-    yellow: 'text-yellow-600',
-    purple: 'text-purple-600',
-    indigo: 'text-indigo-600',
-    pink: 'text-pink-600',
-    orange: 'text-orange-600',
+    blue: 'text-blue-900',
+    green: 'text-green-900',
+    red: 'text-red-900',
+    yellow: 'text-yellow-900',
+    purple: 'text-purple-900',
+    indigo: 'text-indigo-900',
+    pink: 'text-pink-900',
+    orange: 'text-orange-900',
   };
-  return colorMap[props.color];
+  return `text-2xl font-bold ${colorMap[props.color]}`;
 });
 
-const iconClass = computed(() => {
-  return props.icon || 'fas fa-chart-bar';
-});
-
-// Format value based on type
 const formattedValue = computed(() => {
-  if (props.loading) {
-    return '...';
-  }
+  if (props.loading) return '';
 
-  if (props.format === 'currency') {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(props.value));
-  }
+  const val = props.value;
 
-  if (props.format === 'percentage') {
-    return `${props.value}%`;
+  switch (props.format) {
+    case 'number':
+      return typeof val === 'number' ? val.toLocaleString() : val;
+    case 'currency':
+      return typeof val === 'number' ? `$${val.toLocaleString()}` : val;
+    case 'percentage':
+      return typeof val === 'number' ? `${val}%` : val;
+    default:
+      return val;
   }
-
-  if (props.format === 'number') {
-    return new Intl.NumberFormat('en-US').format(Number(props.value));
-  }
-
-  return props.value;
 });
 </script>
+
+<style scoped>
+.statistics-card-compact {
+  min-height: 120px;
+}
+
+.card-content {
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+  gap: 0.75rem;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.value {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.loading-skeleton {
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+  height: 1.5rem;
+  width: 4rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.icon-container i {
+  font-size: 1.125rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+</style>

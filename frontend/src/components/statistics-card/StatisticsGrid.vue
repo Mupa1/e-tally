@@ -1,24 +1,13 @@
 <template>
-  <div :class="containerClasses">
-    <!-- Optional header -->
-    <div v-if="title || description" class="mb-8">
-      <h2 v-if="title" class="text-2xl font-bold text-gray-900 mb-2">
-        {{ title }}
-      </h2>
-      <p v-if="description" class="text-gray-600">{{ description }}</p>
-    </div>
-
-    <!-- Statistics grid -->
-    <div :class="gridClasses">
-      <slot />
-    </div>
+  <div class="statistics-grid" :class="gridClasses">
+    <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue';
+import { computed } from 'vue';
 
-interface Props {
+interface StatisticsGridProps {
   title?: string;
   description?: string;
   columns?: 1 | 2 | 3 | 4 | 5 | 6;
@@ -26,42 +15,53 @@ interface Props {
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<StatisticsGridProps>(), {
   columns: 3,
-  gap: 'lg',
-  padding: 'lg',
+  gap: 'md',
+  padding: 'md',
 });
 
-// Container classes
-const containerClasses = computed(() => {
-  const paddingMap = {
-    none: '',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
-    xl: 'p-12',
-  };
-  return paddingMap[props.padding];
-});
-
-// Grid classes
 const gridClasses = computed(() => {
+  const classes = [];
+
+  // Column classes
   const columnMap = {
     1: 'grid-cols-1',
     2: 'grid-cols-1 md:grid-cols-2',
     3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
     5: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
     6: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6',
   };
+  classes.push(columnMap[props.columns]);
 
+  // Gap classes
   const gapMap = {
-    sm: 'gap-4',
-    md: 'gap-6',
-    lg: 'gap-8',
-    xl: 'gap-12',
+    sm: 'gap-3',
+    md: 'gap-4',
+    lg: 'gap-6',
+    xl: 'gap-8',
   };
+  classes.push(gapMap[props.gap]);
 
-  return `grid ${columnMap[props.columns]} ${gapMap[props.gap]}`;
+  // Padding classes
+  const paddingMap = {
+    none: '',
+    sm: 'p-2',
+    md: 'p-4',
+    lg: 'p-6',
+    xl: 'p-8',
+  };
+  if (paddingMap[props.padding]) {
+    classes.push(paddingMap[props.padding]);
+  }
+
+  return classes.join(' ');
 });
 </script>
+
+<style scoped>
+.statistics-grid {
+  @apply grid;
+}
+</style>

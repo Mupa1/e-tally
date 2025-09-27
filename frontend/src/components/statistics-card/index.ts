@@ -1,8 +1,8 @@
 // Export all statistics card components
 export { default as StatisticsCard } from './StatisticsCard.vue';
 export { default as StatisticsCardEnhanced } from './StatisticsCardEnhanced.vue';
-export { default as StatisticsCardCompact } from './StatisticsCardCompact.vue';
 export { default as StatisticsGrid } from './StatisticsGrid.vue';
+export { default as StatisticsCardCompact } from './StatisticsCardCompact.vue';
 
 // Export types for TypeScript support
 export interface StatItem {

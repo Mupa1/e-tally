@@ -21,60 +21,6 @@
       </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <StatisticsGrid
-      title="Election Hierarchy Overview"
-      :columns="5"
-      gap="lg"
-      padding="none"
-      class="mb-6"
-    >
-      <StatisticsCardCompact
-        name="Counties"
-        :value="stats.counties"
-        format="number"
-        icon="fas fa-map-marker-alt"
-        color="blue"
-        :subtitle="`${stats.countiesWithData} with data`"
-        :loading="statsStore.loading"
-      />
-      <StatisticsCardCompact
-        name="Constituencies"
-        :value="stats.constituencies"
-        format="number"
-        icon="fas fa-landmark"
-        color="green"
-        :subtitle="`${stats.constituenciesWithData} with data`"
-        :loading="statsStore.loading"
-      />
-      <StatisticsCardCompact
-        name="Wards (CAWs)"
-        :value="stats.wards"
-        format="number"
-        icon="fas fa-building"
-        color="purple"
-        :subtitle="`${stats.wardsWithData} with data`"
-        :loading="statsStore.loading"
-      />
-      <StatisticsCardCompact
-        name="Polling Stations"
-        :value="stats.pollingStations"
-        format="number"
-        icon="fas fa-poll"
-        color="orange"
-        :subtitle="`${stats.pollingStationsWithData} with data`"
-        :loading="statsStore.loading"
-      />
-      <StatisticsCardCompact
-        name="Registered Voters"
-        :value="stats.totalRegisteredVoters"
-        format="number"
-        icon="fas fa-users"
-        color="pink"
-        :loading="statsStore.loading"
-      />
-    </StatisticsGrid>
-
     <!-- Quick Actions -->
     <div class="mb-6">
       <div class="card">
@@ -317,10 +263,6 @@ import { useAuthStore } from '@/stores/auth';
 import { useStatsStore } from '@/stores/stats';
 import BulkUploadModal from '@/components/pages/election-hirarchy/BulkUploadModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
-import {
-  StatisticsGrid,
-  StatisticsCardCompact,
-} from '@/components/statistics-card';
 
 const authStore = useAuthStore();
 const statsStore = useStatsStore();
