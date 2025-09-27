@@ -13,7 +13,7 @@
           variant="secondary"
           size="md"
           :disabled="!canCreateUser"
-          @click="showCreateModal = true"
+          @click="createUser"
         />
         <Button
           text="Refresh"
@@ -124,12 +124,7 @@
       </template>
     </BulkTable>
 
-    <!-- Create User Modal -->
-    <CreateUserModal
-      v-if="showCreateModal"
-      @close="showCreateModal = false"
-      @created="handleUserCreated"
-    />
+    <!-- Removed CreateUserModal as it's now a page -->
 
     <!-- Bulk Action Confirmations -->
     <ActionConfirmation
@@ -179,7 +174,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useUserManagementStore } from '@/stores/userManagement';
 import type { User, UserRole } from '@/services/userService';
-import CreateUserModal from '@/components/pages/users/CreateUserModal.vue';
+// Removed CreateUserModal import as it's no longer needed
 import MainLayout from '@/components/MainLayout.vue';
 import { type SelectOption } from '@/components/select';
 import { BulkTable } from '@/components/table';
@@ -199,7 +194,7 @@ const authStore = useAuthStore();
 const userManagementStore = useUserManagementStore();
 
 // Reactive data
-const showCreateModal = ref(false);
+// Removed showCreateModal as it's no longer needed
 const searchTerm = ref('');
 const selectedRoleOption = ref<SelectOption | null>(null);
 const selectedStatusOption = ref<SelectOption | null>(null);
@@ -391,12 +386,13 @@ const viewUser = (user: User) => {
   router.push(`/users/${user.id}`);
 };
 
+const createUser = () => {
+  router.push('/users/create');
+};
+
 // Removed editUser, changeUserPassword, and deleteUser methods as they're no longer needed
 
-const handleUserCreated = () => {
-  showCreateModal.value = false;
-  refreshUsers();
-};
+// Removed handleUserCreated as it's no longer needed
 
 const handleUserAction = (action: string, user: User, index: number) => {
   switch (action) {

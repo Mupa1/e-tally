@@ -42,6 +42,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'User Management - e-Tally' },
   },
   {
+    path: '/users/create',
+    name: 'CreateUser',
+    component: () => import('@/views/user-management/CreateUserPage.vue'),
+    meta: { requiresAuth: true, title: 'Create User - e-Tally' },
+  },
+  {
     path: '/users/:id',
     name: 'ViewUser',
     component: () => import('@/views/user-management/ViewUserPage.vue'),
