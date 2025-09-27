@@ -152,11 +152,11 @@ import {
 
 Available colors: `blue`, `green`, `red`, `yellow`, `purple`, `indigo`, `pink`, `orange`, `gray`
 
-## Usage in Election Hierarchy
+## Usage in Electoral Areas
 
 ```vue
 <template>
-  <StatisticsGrid title="Election Hierarchy Overview" :columns="5">
+  <StatisticsGrid title="Electoral Areas Overview" :columns="5">
     <StatisticsCardCompact
       name="Counties"
       :value="hierarchyStats.totalCounties"

@@ -1,25 +1,14 @@
 <template>
   <MainLayout
-    page-title="Election Hierarchy Overview"
-    page-subtitle="Comprehensive view of the entire election structure and data"
+    page-title="Electoral Areas Overview"
+    page-subtitle="Comprehensive view of the entire electoral structure and data"
   >
     <!-- Error Alert -->
-    <div
-      v-if="statsStore.error"
-      class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-        <span class="text-red-800 font-medium">{{ statsStore.error }}</span>
-        <button
-          type="button"
-          @click="statsStore.clearError()"
-          class="ml-auto text-red-400 hover:text-red-600 transition-colors duration-200"
-        >
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-    </div>
+    <ErrorAlert
+      :show="!!statsStore.error"
+      :message="statsStore.error || ''"
+      @dismiss="statsStore.clearError()"
+    />
 
     <!-- Quick Actions -->
     <div class="mb-6">
@@ -27,33 +16,35 @@
         <div class="card-header">
           <h5 class="card-title mb-0">
             <i class="fas fa-sitemap mr-2"></i>
-            Election Hierarchy Management
+            Electoral Areas Management
           </h5>
         </div>
         <div class="card-body">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <router-link
+            <QuickActionButton
               to="/counties"
-              class="btn-outline-primary w-full text-center"
-            >
-              <i class="fas fa-map-marker-alt mr-2"></i>
-              Counties
-            </router-link>
-            <router-link
+              text="Counties"
+              icon="fa-map-marker-alt"
+              variant="primary"
+            />
+            <QuickActionButton
               to="/constituencies"
-              class="btn-outline-success w-full text-center"
-            >
-              <i class="fas fa-landmark mr-2"></i>
-              Constituencies
-            </router-link>
-            <a href="#" class="btn-outline-info w-full text-center">
-              <i class="fas fa-building mr-2"></i>
-              Wards (CAW)
-            </a>
-            <a href="#" class="btn-outline-warning w-full text-center">
-              <i class="fas fa-poll mr-2"></i>
-              Polling Stations
-            </a>
+              text="Constituencies"
+              icon="fa-landmark"
+              variant="success"
+            />
+            <QuickActionButton
+              to="/caws"
+              text="Wards"
+              icon="fa-building"
+              variant="secondary"
+            />
+            <QuickActionButton
+              href="#"
+              text="Polling Stations"
+              icon="fa-poll"
+              variant="warning"
+            />
           </div>
         </div>
       </div>
@@ -217,38 +208,6 @@
       </div>
     </div>
 
-    <!-- Election Hierarchy Tools -->
-    <div class="mt-6">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">
-            <i class="fas fa-cogs mr-2"></i>
-            Election Hierarchy Tools
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button class="btn-primary w-full" @click="openBulkUpload">
-              <i class="fas fa-upload mr-2"></i>
-              Bulk Upload Data
-            </button>
-            <button class="btn-success w-full" @click="exportData">
-              <i class="fas fa-download mr-2"></i>
-              Export Hierarchy
-            </button>
-            <button class="btn-warning w-full" @click="validateData">
-              <i class="fas fa-check-circle mr-2"></i>
-              Validate Structure
-            </button>
-            <button class="btn-info w-full" @click="refreshData">
-              <i class="fas fa-sync-alt mr-2"></i>
-              Refresh Overview
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Bulk Upload Modal -->
     <BulkUploadModal
       ref="bulkUploadModalRef"
@@ -263,6 +222,8 @@ import { useAuthStore } from '@/stores/auth';
 import { useStatsStore } from '@/stores/stats';
 import BulkUploadModal from '@/components/pages/election-hirarchy/BulkUploadModal.vue';
 import MainLayout from '@/components/MainLayout.vue';
+import ErrorAlert from '@/components/ErrorAlert.vue';
+import QuickActionButton from '@/components/QuickActionButton.vue';
 
 const authStore = useAuthStore();
 const statsStore = useStatsStore();
@@ -337,20 +298,20 @@ const handleUploadSuccess = (result: any) => {
 };
 
 const exportData = () => {
-  // TODO: Implement election hierarchy data export functionality
-  console.log('Export election hierarchy data clicked');
-  // This could export the entire election structure as CSV/Excel
+  // TODO: Implement electoral areas data export functionality
+  console.log('Export electoral areas data clicked');
+  // This could export the entire electoral structure as CSV/Excel
   alert(
-    'Export functionality will be implemented to download the complete election hierarchy data.'
+    'Export functionality will be implemented to download the complete electoral areas data.'
   );
 };
 
 const validateData = () => {
-  // TODO: Implement election hierarchy data validation functionality
-  console.log('Validate election hierarchy data clicked');
-  // This could validate the integrity of the election structure
+  // TODO: Implement electoral areas data validation functionality
+  console.log('Validate electoral areas data clicked');
+  // This could validate the integrity of the electoral structure
   alert(
-    'Validation functionality will be implemented to check the election hierarchy data integrity.'
+    'Validation functionality will be implemented to check the electoral areas data integrity.'
   );
 };
 

@@ -4,104 +4,61 @@
     page-subtitle="Manage counties and their information"
   >
     <!-- Error Alert -->
-    <div
-      v-if="countyManagementStore.error"
-      class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-        <span class="text-red-800 font-medium">{{
-          countyManagementStore.error
-        }}</span>
-        <button
-          type="button"
-          @click="countyManagementStore.clearError()"
-          class="ml-auto text-red-400 hover:text-red-600 transition-colors duration-200"
-        >
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-    </div>
+    <ErrorAlert
+      :show="!!countyManagementStore.error"
+      :message="countyManagementStore.error || ''"
+      @dismiss="countyManagementStore.clearError()"
+    />
 
     <!-- Action Buttons -->
     <div class="flex justify-end mb-6">
       <div class="flex space-x-3">
-        <button
+        <Button
           v-if="user?.role === 'SUPER_ADMIN'"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          text="Add County"
+          icon="fas fa-plus"
+          icon-position="left"
+          variant="secondary"
+          size="md"
+          :disabled="countyManagementStore.loading"
           @click="showCreateModal = true"
+        />
+        <Button
+          text="Refresh"
+          icon="fas fa-sync-alt"
+          icon-position="left"
+          variant="secondary"
+          size="md"
           :disabled="countyManagementStore.loading"
-        >
-          <i class="fas fa-plus mr-2"></i>
-          Add County
-        </button>
-        <button
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          :loading="countyManagementStore.loading"
+          loading-text="Refreshing..."
           @click="refreshCounties"
-          :disabled="countyManagementStore.loading"
-        >
-          <i
-            class="fas fa-sync-alt mr-2"
-            :class="{ 'fa-spin': countyManagementStore.loading }"
-          ></i>
-          Refresh
-        </button>
+        />
       </div>
     </div>
 
     <!-- Filters and Search -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 relative"
+    >
+      <!-- Clear Button -->
+      <ClearButton :show="hasActiveFilters" @click="clearFilters" />
+
       <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
-              >Search Counties</label
-            >
-            <div class="relative flex-1">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-              >
-                <i class="fas fa-search text-gray-400"></i>
-              </div>
-              <input
-                type="text"
-                class="w-full h-12 pl-10 pr-4 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                placeholder="Search by name or code..."
-                v-model="searchQuery"
-                @input="handleSearch"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <div class="space-y-0">
-              <FormSelect
-                v-model="pageSizeOption"
-                :options="pageSizeOptions"
-                label="Show"
-                placeholder="Select page size"
-                button-class="w-full h-12 px-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
-                @change="handlePageSizeChange"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
-              >&nbsp;</label
-            >
-            <button
-              class="w-full h-12 inline-flex items-center justify-center px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              @click="clearFilters"
-            >
-              <i class="fas fa-times mr-2"></i>
-              Clear
-            </button>
-          </div>
-          <div class="flex flex-col">
-            <label class="block text-sm font-semibold text-gray-700 mb-[12px]"
-              >&nbsp;</label
-            >
-            <div></div>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SearchInput
+            v-model="searchQuery"
+            label="Search Counties"
+            placeholder="Search by name or code..."
+            @input="handleSearch"
+          />
+          <FormSelect
+            v-model="pageSizeOption"
+            :options="pageSizeOptions"
+            label="Show"
+            placeholder="Select page size"
+            @change="handlePageSizeChange"
+          />
         </div>
       </div>
     </div>
@@ -211,6 +168,7 @@ import EditCountyModal from '@/components/pages/counties/EditCountyModal.vue';
 import { FormSelect } from '@/components/select';
 import SimpleTable from '@/components/table/SimpleTable.vue';
 import type { SimpleTableColumn } from '@/components/table/SimpleTable.vue';
+import { SearchInput, ClearButton, ErrorAlert, Button } from '@/components';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -261,6 +219,13 @@ const tableColumns: SimpleTableColumn[] = [
 
 // Computed
 const user = computed(() => authStore.user);
+
+// Check if any filters are active
+const hasActiveFilters = computed(() => {
+  return (
+    searchQuery.value.trim() !== '' || pageSizeOption.value?.value !== '10'
+  );
+});
 
 // Methods
 const refreshCounties = async () => {

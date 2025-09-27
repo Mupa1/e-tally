@@ -27,7 +27,7 @@
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
         Compact Statistics Cards
       </h2>
-      <StatisticsGrid title="Election Hierarchy Overview" :columns="5">
+      <StatisticsGrid title="Electoral Areas Overview" :columns="5">
         <StatisticsCardCompact
           name="Counties"
           :value="hierarchyStats.totalCounties"

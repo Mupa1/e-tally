@@ -33,7 +33,7 @@ export function useNavigation() {
       ],
     },
     {
-      name: 'Election Hierarchy',
+      name: 'Electoral Areas',
       href: '/election-hierarchy',
       icon: 'fas fa-sitemap',
       children: [
@@ -53,8 +53,8 @@ export function useNavigation() {
           icon: 'fas fa-landmark',
         },
         {
-          name: 'Wards CAW',
-          href: '/wards',
+          name: 'County Assembly Wards',
+          href: '/caws',
           icon: 'fas fa-building',
         },
         {
@@ -79,7 +79,8 @@ export function useNavigation() {
         (item.href === '/election-overview' &&
           route.name === 'ElectionHierarchyOverview') ||
         (item.href === '/pollingstation' &&
-          route.name === 'PollingStationManagement');
+          route.name === 'PollingStationManagement') ||
+        (item.href === '/caws' && route.name === 'CAWManagement');
 
       // Check if any child is active
       const hasActiveChild = item.children?.some((child) => {
@@ -102,6 +103,8 @@ export function useNavigation() {
           route.name === 'PollingStationManagement'
         )
           return true;
+        if (child.href === '/caws' && route.name === 'CAWManagement')
+          return true;
         return false;
       });
 
@@ -119,7 +122,8 @@ export function useNavigation() {
             (child.href === '/constituencies' &&
               route.name === 'ConstituencyManagement') ||
             (child.href === '/pollingstation' &&
-              route.name === 'PollingStationManagement'),
+              route.name === 'PollingStationManagement') ||
+            (child.href === '/caws' && route.name === 'CAWManagement'),
         })),
       };
     })

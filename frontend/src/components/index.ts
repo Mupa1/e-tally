@@ -13,6 +13,7 @@ export { default as FormInput } from './FormInput.vue';
 export { default as PasswordInput } from './PasswordInput.vue';
 export { default as FormSection } from './FormSection.vue';
 export { default as SimpleFormSelect } from './SimpleFormSelect.vue';
+export { default as QuickActionButton } from './QuickActionButton.vue';
 
 // Export statistics card components
 export * from './statistics-card';
