@@ -4,23 +4,18 @@
     page-subtitle="Manage and view system data and information"
   >
     <!-- Error Alert -->
-    <div v-if="statsStore.error" class="mb-6">
-      <div class="bg-red-50 border border-red-200 rounded-md p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <i class="fas fa-exclamation-circle text-red-400"></i>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800">
-              Error loading statistics
-            </h3>
-            <div class="mt-2 text-sm text-red-700">
-              {{ statsStore.error }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ErrorAlert
+      :show="!!statsStore.error"
+      :message="statsStore.error || ''"
+      @dismiss="statsStore.clearError"
+    />
+
+    <!-- Success Alert -->
+    <SuccessAlert
+      :show="showSuccessAlert"
+      :message="successMessage"
+      @dismiss="handleSuccessAlertDismiss"
+    />
 
     <!-- Statistics Cards -->
     <StatisticsGrid
@@ -83,22 +78,42 @@
         </div>
         <div class="card-body">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button class="btn-primary w-full" @click="openBulkUpload">
-              <i class="fas fa-upload mr-2"></i>
-              Upload Polling Station Data
-            </button>
-            <button class="btn-success w-full" @click="exportData">
-              <i class="fas fa-download mr-2"></i>
-              Export Data
-            </button>
-            <button class="btn-warning w-full" @click="validateData">
-              <i class="fas fa-check-circle mr-2"></i>
-              Validate Data
-            </button>
-            <button class="btn-info w-full" @click="refreshData">
-              <i class="fas fa-sync-alt mr-2"></i>
-              Refresh Data
-            </button>
+            <Button
+              text="Upload Polling Station Data"
+              variant="primary"
+              size="md"
+              icon="fas fa-upload"
+              icon-position="left"
+              class="w-full"
+              @click="openBulkUpload"
+            />
+            <Button
+              text="Export Data"
+              variant="success"
+              size="md"
+              icon="fas fa-download"
+              icon-position="left"
+              class="w-full"
+              @click="exportData"
+            />
+            <Button
+              text="Validate Data"
+              variant="warning"
+              size="md"
+              icon="fas fa-check-circle"
+              icon-position="left"
+              class="w-full"
+              @click="validateData"
+            />
+            <Button
+              text="Refresh Data"
+              variant="info"
+              size="md"
+              icon="fas fa-sync-alt"
+              icon-position="left"
+              class="w-full"
+              @click="refreshData"
+            />
           </div>
         </div>
       </div>
@@ -127,6 +142,9 @@ import {
 } from '@/components/statistics-card';
 import BulkUploadModal from '@/components/pages/election-hirarchy/BulkUploadModal.vue';
 import ExportDataModal from '@/components/pages/data-management/ExportDataModal.vue';
+import SuccessAlert from '@/components/SuccessAlert.vue';
+import ErrorAlert from '@/components/ErrorAlert.vue';
+import Button from '@/components/Button.vue';
 import { useStatsStore } from '@/stores/stats';
 
 // Store
@@ -134,6 +152,8 @@ const statsStore = useStatsStore();
 
 // Reactive data
 const loading = ref(false);
+const showSuccessAlert = ref(false);
+const successMessage = ref('');
 
 const bulkUploadModalRef = ref<InstanceType<typeof BulkUploadModal> | null>(
   null
@@ -185,15 +205,20 @@ const handleUploadSuccess = (result: any) => {
   refreshData();
 
   // Show success notification
-  const message = result.data
+  successMessage.value = result.data
     ? `Upload completed successfully! Created ${
         result.data.pollingStations?.created || 0
-      } polling stations, ${result.data.wards?.created || 0} wards, ${
+      } polling stations, ${result.data.caws?.created || 0} wards, ${
         result.data.constituencies?.created || 0
       } constituencies, and ${result.data.counties?.created || 0} counties.`
     : 'Upload completed successfully!';
 
-  alert(message);
+  showSuccessAlert.value = true;
+};
+
+const handleSuccessAlertDismiss = () => {
+  showSuccessAlert.value = false;
+  successMessage.value = '';
 };
 
 const exportData = () => {

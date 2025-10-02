@@ -52,19 +52,20 @@
             placeholder="Search by name or code..."
             @input="handleSearch"
           />
-          <FormSelect
+          <SearchableSelect
             v-model="selectedCountyOption"
             :options="countyOptions"
             label="Filter by County"
-            placeholder="All Counties"
-            @change="handleCountyFilterChange"
+            placeholder="Search and select county..."
+            @update:modelValue="handleCountyFilterChange"
           />
-          <FormSelect
+          <SearchableSelect
             v-model="selectedConstituencyOption"
             :options="constituencyOptions"
             label="Filter by Constituency"
-            placeholder="All Constituencies"
-            @change="handleConstituencyFilterChange"
+            placeholder="Search and select constituency..."
+            :disabled="!selectedCountyOption"
+            @update:modelValue="handleConstituencyFilterChange"
           />
         </div>
       </div>
@@ -110,6 +111,7 @@ import {
   ClearButton,
   PageSizeSelector,
 } from '@/components';
+import SearchableSelect from '@/components/select/SearchableSelect.vue';
 import { type SelectOption } from '@/components/select';
 import SimpleTable from '@/components/table/SimpleTable.vue';
 import type {
@@ -166,14 +168,35 @@ const countyOptions = computed<SelectOption[]>(() => [
   })),
 ]);
 
-const constituencyOptions = computed<SelectOption[]>(() => [
-  { id: '', label: 'All Constituencies' },
-  ...filteredConstituencies.value.map((constituency) => ({
-    id: constituency.id,
-    label: constituency.name,
-    value: constituency.id,
-  })),
-]);
+const constituencyOptions = computed<SelectOption[]>(() => {
+  const options = [{ id: '', label: 'All Constituencies' }];
+
+  // If a county is selected, only show constituencies from that county
+  if (selectedCountyOption.value?.value) {
+    const countyConstituencies = constituencies.value.filter(
+      (constituency) =>
+        constituency.countyId === selectedCountyOption.value?.value
+    );
+    options.push(
+      ...countyConstituencies.map((constituency) => ({
+        id: constituency.id,
+        label: constituency.name,
+        value: constituency.id,
+      }))
+    );
+  } else {
+    // If no county selected, show all constituencies
+    options.push(
+      ...constituencies.value.map((constituency) => ({
+        id: constituency.id,
+        label: constituency.name,
+        value: constituency.id,
+      }))
+    );
+  }
+
+  return options;
+});
 
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
@@ -241,6 +264,9 @@ const handleCountyFilterChange = async (option: SelectOption | null) => {
   // Set selected county and fetch constituencies
   constituencyManagementStore.setSelectedCounty(option?.value || null);
   await constituencyManagementStore.fetchConstituencies();
+
+  // Clear constituency filter when county changes
+  cawManagementStore.filterByConstituency(null);
 };
 
 const handleConstituencyFilterChange = (option: SelectOption | null) => {
@@ -252,6 +278,7 @@ const clearFilters = () => {
   searchTerm.value = '';
   selectedCountyOption.value = null;
   selectedConstituencyOption.value = null;
+  constituencyManagementStore.setSelectedCounty(null);
   cawManagementStore.clearFilters();
 };
 

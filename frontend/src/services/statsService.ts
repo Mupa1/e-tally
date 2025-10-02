@@ -28,7 +28,7 @@ class StatsService {
   }
 
   async getHierarchyStats(): Promise<HierarchyStatsResponse> {
-    const response = await axios.get(`${API_BASE_URL}/stats/hierarchy`, {
+    const response = await axios.get(`${API_BASE_URL}/stats/electoral-area`, {
       headers: this.getAuthHeaders(),
     });
     return response.data;

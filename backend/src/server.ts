@@ -20,6 +20,8 @@ import constituencyRoutes from './routes/constituencies';
 import cawRoutes from './routes/caws';
 import pollingStationRoutes from './routes/pollingStations';
 import bulkUploadRoutes from './routes/bulkUpload';
+import electoralPositionRoutes from './routes/electoralPositions';
+import statsRoutes from './routes/stats';
 
 // Load environment variables
 dotenv.config();
@@ -141,6 +143,8 @@ app.use('/api/constituencies', constituencyRoutes);
 app.use('/api/caws', cawRoutes);
 app.use('/api/polling-stations', pollingStationRoutes);
 app.use('/api/bulk-upload', bulkUploadRoutes);
+app.use('/api/electoral-positions', electoralPositionRoutes);
+app.use('/api/stats', statsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

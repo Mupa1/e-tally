@@ -212,7 +212,7 @@ router.post(
       }
 
       const candidate = await prisma.candidate.create({
-        data: { name, party, electionType, constituencyId, cawId },
+        data: { name, party, constituencyId, cawId },
         include: {
           constituency: {
             select: {

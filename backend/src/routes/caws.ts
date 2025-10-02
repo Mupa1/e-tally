@@ -23,11 +23,21 @@ router.get(
   validateQuery(schemas.pagination),
   async (req, res, next) => {
     try {
-      const { page, limit, sortBy, sortOrder, constituencyId } =
+      const { page, limit, sortBy, sortOrder, constituencyId, search } =
         req.query as any;
       const skip = (page - 1) * limit;
 
-      const where = constituencyId ? { constituencyId } : {};
+      // Build where clause
+      const where: any = {};
+      if (constituencyId) {
+        where.constituencyId = constituencyId;
+      }
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { code: { contains: search, mode: 'insensitive' } },
+        ];
+      }
 
       const [caws, total] = await Promise.all([
         prisma.cAW.findMany({

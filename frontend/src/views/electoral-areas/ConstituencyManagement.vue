@@ -4,24 +4,11 @@
     page-subtitle="Manage constituencies efficiently with optimized performance"
   >
     <!-- Error Alert -->
-    <div
-      v-if="constituencyManagementStore.error"
-      class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-        <span class="text-red-800 font-medium">{{
-          constituencyManagementStore.error
-        }}</span>
-        <button
-          type="button"
-          @click="constituencyManagementStore.clearError()"
-          class="ml-auto text-red-400 hover:text-red-600 transition-colors duration-200"
-        >
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-    </div>
+    <ErrorAlert
+      :show="!!constituencyManagementStore.error"
+      :message="constituencyManagementStore.error || ''"
+      @dismiss="constituencyManagementStore.clearError"
+    />
 
     <!-- Action Bar -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
@@ -406,6 +393,7 @@ import type { SelectOption } from '@/components/select/Select.vue';
 import MainLayout from '@/components/MainLayout.vue';
 import FormSelect from '@/components/select/FormSelect.vue';
 import CreateConstituencyModal from '@/components/pages/constituencies/CreateConstituencyModal.vue';
+import ErrorAlert from '@/components/ErrorAlert.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();

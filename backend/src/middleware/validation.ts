@@ -67,6 +67,19 @@ export const schemas = {
     search: Joi.string().optional(),
     role: Joi.string().optional(),
     isActive: Joi.string().valid('true', 'false').optional(),
+    countyId: Joi.string().optional(),
+  }),
+
+  electoralPositionPagination: Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(1).max(1000).default(10),
+    sortBy: Joi.string().default('name'),
+    sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
+    search: Joi.string().optional(),
+    level: Joi.string()
+      .valid('NATIONAL', 'COUNTY', 'CONSTITUENCY', 'WARD')
+      .optional(),
+    isActive: Joi.string().valid('true', 'false').optional(),
   }),
 
   user: Joi.object({
@@ -147,6 +160,14 @@ export const schemas = {
   electionResult: Joi.object({
     pollingStationId: Joi.string().required(),
     candidateId: Joi.string().required(),
+    electionType: Joi.string()
+      .valid(
+        'GENERAL_ELECTION',
+        'RUNOFF_ELECTION',
+        'BY_ELECTIONS',
+        'PRIMARY_ELECTIONS'
+      )
+      .required(),
     votes: Joi.number().integer().min(0).required(),
     spoiltVotes: Joi.number().integer().min(0).default(0),
   }),

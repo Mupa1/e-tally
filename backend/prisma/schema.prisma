@@ -199,48 +199,70 @@ model VoterRegistration {
 
 // Candidates
 model Candidate {
-  id             String       @id @default(cuid())
-  name           String
-  party          String?
-  electionType   ElectionType
-  constituencyId String?
-  cawId          String?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                  String   @id @default(cuid())
+  name                String
+  party               String?
+  electoralPositionId String?
+  constituencyId      String?
+  cawId               String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   // Relationships
-  constituency Constituency?    @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
-  caw          CAW?             @relation(fields: [cawId], references: [id], onDelete: Cascade)
-  results      ElectionResult[]
+  electoralPosition ElectoralPosition? @relation(fields: [electoralPositionId], references: [id], onDelete: Cascade)
+  constituency      Constituency?      @relation(fields: [constituencyId], references: [id], onDelete: Cascade)
+  caw               CAW?               @relation(fields: [cawId], references: [id], onDelete: Cascade)
+  results           ElectionResult[]
 
   @@map("candidates")
 }
 
+// Electoral Positions
+model ElectoralPosition {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  level       ElectoralLevel
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relationships
+  candidates Candidate[]
+
+  @@map("electoral_positions")
+}
+
+enum ElectoralLevel {
+  NATIONAL
+  COUNTY
+  CONSTITUENCY
+  WARD
+}
+
 enum ElectionType {
-  PRESIDENTIAL
-  PARLIAMENTARY
-  LOCAL_GOVERNMENT
-  SENATORIAL
-  GUBERNATORIAL
-  COUNTY_ASSEMBLY_REPRESENTATIVE
-  WOMENS_REPRESENTATIVE
+  GENERAL_ELECTION
+  RUNOFF_ELECTION
+  BY_ELECTIONS
+  PRIMARY_ELECTIONS
 }
 
 // Election Results
 model ElectionResult {
-  id               String    @id @default(cuid())
+  id               String       @id @default(cuid())
   pollingStationId String
   candidateId      String
+  electionType     ElectionType
   votes            Int
-  spoiltVotes      Int?      @default(0)
+  spoiltVotes      Int?         @default(0)
   totalVotes       Int
   voterTurnout     Float
-  isVerified       Boolean   @default(false)
-  reportedAt       DateTime  @default(now())
+  isVerified       Boolean      @default(false)
+  reportedAt       DateTime     @default(now())
   verifiedAt       DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   // Relationships
   pollingStation PollingStation @relation(fields: [pollingStationId], references: [id], onDelete: Cascade)

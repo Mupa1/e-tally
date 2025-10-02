@@ -71,6 +71,79 @@ router.get(
   }
 );
 
+// Get constituency statistics
+router.get('/stats', authenticateToken, async (req, res, next) => {
+  try {
+    const { countyId, constituencyId } = req.query as any;
+
+    // Build where clause based on query parameters
+    const where: any = {};
+    if (countyId) where.countyId = countyId;
+    if (constituencyId) where.id = constituencyId;
+
+    // Get total count
+    const totalCount = await prisma.constituency.count({ where });
+
+    // Get statistics by county
+    const byCounty = await prisma.constituency.groupBy({
+      by: ['countyId'],
+      where,
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get statistics by CAW
+    const byCAW = await prisma.cAW.groupBy({
+      by: ['constituencyId'],
+      where: constituencyId ? { constituencyId } : {},
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get voter statistics
+    const voterStats = await prisma.voterRegistration.aggregate({
+      where: constituencyId
+        ? {
+            pollingStation: {
+              constituencyId: constituencyId,
+            },
+          }
+        : {},
+      _sum: {
+        registeredVoters: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    const stats = {
+      totalCount,
+      byCounty: byCounty.map((item) => ({
+        constituencyId: item.countyId,
+        _count: { id: item._count.id },
+      })),
+      byCAW: byCAW.map((item) => ({
+        cawId: item.constituencyId,
+        _count: { id: item._count.id },
+      })),
+      voterStats: {
+        totalRegisteredVoters: voterStats._sum.registeredVoters || 0,
+        totalPollingStations: voterStats._count.id || 0,
+      },
+    };
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get constituency by ID
 router.get(
   '/:id',

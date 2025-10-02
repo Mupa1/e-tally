@@ -39,9 +39,7 @@ router.get(
       if (pollingStationId) where.pollingStationId = pollingStationId;
       if (candidateId) where.candidateId = candidateId;
       if (electionType) {
-        where.candidate = {
-          electionType: electionType,
-        };
+        where.electionType = electionType;
       }
 
       const [results, total] = await Promise.all([
@@ -84,7 +82,6 @@ router.get(
                 id: true,
                 name: true,
                 party: true,
-                electionType: true,
               },
             },
             reporter: {
@@ -163,7 +160,6 @@ router.get(
               id: true,
               name: true,
               party: true,
-              electionType: true,
             },
           },
           reporter: {
@@ -203,6 +199,7 @@ router.post(
       const {
         pollingStationId,
         candidateId,
+        electionType,
         votes,
         spoiltVotes = 0,
       } = req.body;
@@ -270,6 +267,7 @@ router.post(
         data: {
           pollingStationId,
           candidateId,
+          electionType,
           votes,
           spoiltVotes,
           totalVotes,
@@ -310,7 +308,6 @@ router.post(
               id: true,
               name: true,
               party: true,
-              electionType: true,
             },
           },
         },
@@ -442,7 +439,6 @@ router.put(
               id: true,
               name: true,
               party: true,
-              electionType: true,
             },
           },
         },
@@ -489,7 +485,6 @@ router.put(
               id: true,
               name: true,
               party: true,
-              electionType: true,
             },
           },
         },
