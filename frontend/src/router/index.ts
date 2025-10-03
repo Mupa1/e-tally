@@ -8,13 +8,12 @@ const Dashboard = () => import('@/views/Dashboard.vue');
 const UserManagement = () =>
   import('@/views/user-management/UserManagement.vue');
 const CountyManagement = () =>
-  import('@/views/election-hierarchy/CountyManagement.vue');
+  import('@/views/electoral-areas/CountyManagement.vue');
 const ConstituencyManagement = () =>
-  import('@/views/election-hierarchy/ConstituencyManagement.vue');
-const CAWManagement = () =>
-  import('@/views/election-hierarchy/CAWManagement.vue');
+  import('@/views/electoral-areas/ConstituencyManagement.vue');
+const CAWManagement = () => import('@/views/electoral-areas/CAWManagement.vue');
 const ElectionHierarchy = () =>
-  import('@/views/election-hierarchy/ElectionHierarchy.vue');
+  import('@/views/electoral-areas/ElectionHierarchy.vue');
 const UploadErrors = () => import('@/views/settings/UploadErrors.vue');
 
 export const routes: RouteRecordRaw[] = [
@@ -66,7 +65,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/counties/:id',
     name: 'ViewCounty',
-    component: () => import('@/views/election-hierarchy/ViewCountyPage.vue'),
+    component: () => import('@/views/electoral-areas/ViewCountyPage.vue'),
     meta: { requiresAuth: true, title: 'County Details - e-Tally' },
   },
   {
@@ -78,8 +77,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/constituencies/:id',
     name: 'ViewConstituency',
-    component: () =>
-      import('@/views/election-hierarchy/ViewConstituencyPage.vue'),
+    component: () => import('@/views/electoral-areas/ViewConstituencyPage.vue'),
     meta: { requiresAuth: true, title: 'Constituency Details - e-Tally' },
   },
   {

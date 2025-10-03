@@ -2,12 +2,13 @@
   <div class="flex flex-col">
     <div class="space-y-0">
       <BaseFormSelect
-        v-model="modelValue"
+        :value="modelValue"
         :options="options"
         :label="label"
         :placeholder="placeholder"
         :button-class="buttonClass"
         :disabled="disabled"
+        @update:modelValue="handleChange"
         @change="handleChange"
       />
     </div>
