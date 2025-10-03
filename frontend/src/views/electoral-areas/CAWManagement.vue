@@ -88,6 +88,18 @@
           @page-size-change="changePageSize"
         />
       </template>
+
+      <!-- Custom Actions - Only View Button -->
+      <template #actions="{ item, index }">
+        <a
+          href="#"
+          class="text-indigo-600 hover:text-indigo-900"
+          @click.prevent="handleCAWAction('view', item, index)"
+        >
+          View
+          <span class="sr-only">, {{ item.name }}</span>
+        </a>
+      </template>
     </SimpleTable>
 
     <!-- Bulk Actions removed - SimpleTable handles actions through individual row actions -->
@@ -139,17 +151,6 @@ const constituencies = computed(
   () => constituencyManagementStore.filteredConstituencies
 );
 const pagination = computed(() => cawManagementStore.pagination);
-
-const canEditCAW = computed(() => {
-  return (
-    user.value?.role === 'SUPER_ADMIN' ||
-    user.value?.role === 'COUNTY_LEVEL_SUPERVISOR'
-  );
-});
-
-const canDeleteCAW = computed(() => {
-  return user.value?.role === 'SUPER_ADMIN';
-});
 
 // Options for FormSelect components
 
@@ -277,16 +278,8 @@ const changePage = (page: number) => {
 };
 
 const handleCAWAction = (action: string, caw: any, index: number) => {
-  switch (action) {
-    case 'view':
-      viewCAW(caw);
-      break;
-    case 'edit':
-      editCAW(caw);
-      break;
-    case 'delete':
-      deleteCAW(caw);
-      break;
+  if (action === 'view') {
+    viewCAW(caw);
   }
 };
 
@@ -294,20 +287,6 @@ const handleCAWAction = (action: string, caw: any, index: number) => {
 
 const viewCAW = (caw: any) => {
   router.push(`/caws/${caw.id}`);
-};
-
-const editCAW = (caw: any) => {
-  router.push(`/caws/${caw.id}/edit`);
-};
-
-const deleteCAW = async (caw: any) => {
-  if (confirm(`Are you sure you want to delete ${caw.name}?`)) {
-    try {
-      await cawManagementStore.deleteCAW(caw.id);
-    } catch (error) {
-      console.error('Error deleting CAW:', error);
-    }
-  }
 };
 
 // Bulk selection methods removed - SimpleTable handles individual actions

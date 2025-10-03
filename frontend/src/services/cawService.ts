@@ -118,6 +118,7 @@ export interface CAWsParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   constituencyId?: string;
+  countyId?: string;
 }
 
 export interface BulkImportCAWsData {
@@ -135,6 +136,7 @@ class CAWService {
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     if (params.constituencyId)
       queryParams.append('constituencyId', params.constituencyId);
+    if (params.countyId) queryParams.append('countyId', params.countyId);
 
     const response = await api.get(`/caws?${queryParams.toString()}`);
     return response.data;

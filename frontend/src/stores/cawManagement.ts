@@ -232,6 +232,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     sortBy,
     sortOrder,
     selectedConstituencyId,
+    selectedCountyId,
 
     // Computed
     filteredCAWs,
