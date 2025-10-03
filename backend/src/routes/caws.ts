@@ -23,7 +23,7 @@ router.get(
   validateQuery(schemas.pagination),
   async (req, res, next) => {
     try {
-      const { page, limit, sortBy, sortOrder, constituencyId, search } =
+      const { page, limit, sortBy, sortOrder, constituencyId, countyId, search } =
         req.query as any;
       const skip = (page - 1) * limit;
 
@@ -31,6 +31,11 @@ router.get(
       const where: any = {};
       if (constituencyId) {
         where.constituencyId = constituencyId;
+      }
+      if (countyId) {
+        where.constituency = {
+          countyId: countyId,
+        };
       }
       if (search) {
         where.OR = [

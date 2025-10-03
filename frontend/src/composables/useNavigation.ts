@@ -32,38 +32,6 @@ export function useNavigation() {
         },
       ],
     },
-    {
-      name: 'Electoral Areas',
-      href: '/election-hierarchy',
-      icon: 'fas fa-sitemap',
-      children: [
-        {
-          name: 'Overview',
-          href: '/election-overview',
-          icon: 'fas fa-chart-pie',
-        },
-        {
-          name: 'Counties',
-          href: '/counties',
-          icon: 'fas fa-map-marker-alt',
-        },
-        {
-          name: 'Constituency',
-          href: '/constituencies',
-          icon: 'fas fa-landmark',
-        },
-        {
-          name: 'County Assembly Wards',
-          href: '/caws',
-          icon: 'fas fa-building',
-        },
-        {
-          name: 'Polling Stations',
-          href: '/pollingstation',
-          icon: 'fas fa-poll',
-        },
-      ],
-    },
   ];
 
   const navigation = computed(() =>
@@ -72,38 +40,11 @@ export function useNavigation() {
       const isCurrentItem =
         route.name === item.name.replace(/\s+/g, '') ||
         (item.href === '/dashboard' && route.name === 'Dashboard') ||
-        (item.href === '/users' && route.name === 'UserManagement') ||
-        (item.href === '/counties' && route.name === 'CountyManagement') ||
-        (item.href === '/constituencies' &&
-          route.name === 'ConstituencyManagement') ||
-        (item.href === '/election-overview' &&
-          route.name === 'ElectionHierarchyOverview') ||
-        (item.href === '/pollingstation' &&
-          route.name === 'PollingStationManagement') ||
-        (item.href === '/caws' && route.name === 'CAWManagement');
+        (item.href === '/users' && route.name === 'UserManagement');
 
       // Check if any child is active
       const hasActiveChild = item.children?.some((child) => {
         if (child.href === '/users' && route.name === 'UserManagement')
-          return true;
-        if (
-          child.href === '/election-overview' &&
-          route.name === 'ElectionHierarchyOverview'
-        )
-          return true;
-        if (child.href === '/counties' && route.name === 'CountyManagement')
-          return true;
-        if (
-          child.href === '/constituencies' &&
-          route.name === 'ConstituencyManagement'
-        )
-          return true;
-        if (
-          child.href === '/pollingstation' &&
-          route.name === 'PollingStationManagement'
-        )
-          return true;
-        if (child.href === '/caws' && route.name === 'CAWManagement')
           return true;
         return false;
       });
@@ -114,16 +55,7 @@ export function useNavigation() {
         expanded: hasActiveChild,
         children: item.children?.map((child) => ({
           ...child,
-          current:
-            (child.href === '/users' && route.name === 'UserManagement') ||
-            (child.href === '/election-overview' &&
-              route.name === 'ElectionHierarchyOverview') ||
-            (child.href === '/counties' && route.name === 'CountyManagement') ||
-            (child.href === '/constituencies' &&
-              route.name === 'ConstituencyManagement') ||
-            (child.href === '/pollingstation' &&
-              route.name === 'PollingStationManagement') ||
-            (child.href === '/caws' && route.name === 'CAWManagement'),
+          current: child.href === '/users' && route.name === 'UserManagement',
         })),
       };
     })

@@ -98,6 +98,192 @@ router.get(
   }
 );
 
+// Get county statistics
+router.get('/stats', authenticateToken, async (req, res, next) => {
+  try {
+    const { countyId } = req.query as any;
+
+    // Build where clause based on query parameters
+    const where: any = {};
+    if (countyId) where.id = countyId;
+
+    // Get total count
+    const totalCount = await prisma.county.count({ where });
+
+    // Get statistics by constituency
+    const byConstituency = await prisma.constituency.groupBy({
+      by: ['countyId'],
+      where: countyId ? { countyId } : {},
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get statistics by CAW
+    const byCAW = await prisma.cAW.groupBy({
+      by: ['constituencyId'],
+      where: countyId
+        ? {
+            constituency: {
+              countyId: countyId,
+            },
+          }
+        : {},
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get voter statistics
+    const voterStats = await prisma.voterRegistration.aggregate({
+      where: countyId
+        ? {
+            pollingStation: {
+              constituency: {
+                countyId: countyId,
+              },
+            },
+          }
+        : {},
+      _sum: {
+        registeredVoters: true,
+      },
+      _count: {
+        id: true,
+      },
+      _avg: {
+        registeredVoters: true,
+      },
+    });
+
+    // Get polling station statistics
+    const pollingStationStats = await prisma.pollingStation.aggregate({
+      where: countyId
+        ? {
+            constituency: {
+              countyId: countyId,
+            },
+          }
+        : {},
+      _count: {
+        id: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalCount,
+        byConstituency,
+        byCAW,
+        voterStats,
+        pollingStationStats,
+      },
+    });
+  } catch (error: any) {
+    next(new AppError('Failed to fetch county statistics', 500));
+  }
+});
+
+// Get county statistics by ID
+router.get(
+  '/:id/stats',
+  authenticateToken,
+  validateParams(schemas.id),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      // Get county details
+      const county = await prisma.county.findUnique({
+        where: { id },
+        include: {
+          _count: {
+            select: {
+              constituencies: true,
+            },
+          },
+        },
+      });
+
+      if (!county) {
+        return next(new AppError('County not found', 404));
+      }
+
+      // Get statistics for this specific county
+      const [byConstituency, byCAW, voterStats, pollingStationStats] =
+        await Promise.all([
+          // Constituencies in this county
+          prisma.constituency.groupBy({
+            by: ['countyId'],
+            where: { countyId: id },
+            _count: {
+              id: true,
+            },
+          }),
+
+          // CAWs in this county
+          prisma.cAW.groupBy({
+            by: ['constituencyId'],
+            where: {
+              constituency: {
+                countyId: id,
+              },
+            },
+            _count: {
+              id: true,
+            },
+          }),
+
+          // Voter statistics for this county
+          prisma.voterRegistration.aggregate({
+            where: {
+              pollingStation: {
+                constituency: {
+                  countyId: id,
+                },
+              },
+            },
+            _sum: {
+              registeredVoters: true,
+            },
+            _count: {
+              id: true,
+            },
+            _avg: {
+              registeredVoters: true,
+            },
+          }),
+
+          // Polling station statistics for this county
+          prisma.pollingStation.aggregate({
+            where: {
+              constituency: {
+                countyId: id,
+              },
+            },
+            _count: {
+              id: true,
+            },
+          }),
+        ]);
+
+      res.json({
+        success: true,
+        data: {
+          county,
+          byConstituency,
+          byCAW,
+          voterStats,
+          pollingStationStats,
+        },
+      });
+    } catch (error: any) {
+      next(new AppError('Failed to fetch county statistics', 500));
+    }
+  }
+);
+
 // Get county by ID
 router.get(
   '/:id',

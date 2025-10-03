@@ -58,8 +58,8 @@
               </p>
               <p class="text-2xl font-semibold text-gray-900">
                 {{
-                  constituencyManagementStore.stats?.voterStats?._sum
-                    ?.registeredVoters || 0
+                  constituencyManagementStore.stats?.voterStats
+                    ?.totalRegisteredVoters || 0
                 }}
               </p>
             </div>
@@ -122,8 +122,8 @@
               <p class="text-2xl font-semibold text-gray-900">
                 {{
                   Math.round(
-                    constituencyManagementStore.stats?.voterStats?._avg
-                      ?.registeredVoters || 0
+                    constituencyManagementStore.stats?.voterStats
+                      ?.averageRegisteredVoters || 0
                   )
                 }}
               </p>
@@ -237,18 +237,6 @@
                 >
                   {{ constituency._count?.pollingStations || 0 }}
                 </span>
-              </p>
-            </div>
-
-            <!-- Created Date -->
-            <div>
-              <h6
-                class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2"
-              >
-                Created Date
-              </h6>
-              <p class="text-sm text-gray-600">
-                {{ formatDate(constituency.createdAt) }}
               </p>
             </div>
 
@@ -567,6 +555,13 @@ const loadConstituency = async () => {
     }
 
     constituency.value = foundConstituency;
+
+    // Debug constituency statistics
+    console.log(
+      'Constituency stats from store:',
+      constituencyManagementStore.stats
+    );
+    console.log('Constituency data:', constituency.value);
   } catch (err) {
     error.value = 'Failed to load constituency details';
     console.error('Error loading constituency:', err);

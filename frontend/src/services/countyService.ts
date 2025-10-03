@@ -49,6 +49,7 @@ export interface CountiesParams {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  forceRefresh?: boolean;
 }
 
 class CountyService {
@@ -77,9 +78,18 @@ class CountyService {
     if (params.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
+    // Only add cache-busting for specific requests that need fresh data
+    if (params.forceRefresh) {
+      queryParams.append('_t', Date.now().toString());
+    }
+
     const response = await axios.get(
       `${API_BASE_URL}/counties?${queryParams.toString()}`,
-      { headers: this.getAuthHeaders() }
+      {
+        headers: this.getAuthHeaders(),
+        // Only disable caching when forcing refresh
+        ...(params.forceRefresh && { cache: 'no-cache' }),
+      }
     );
     return response.data;
   }

@@ -117,6 +117,9 @@ router.get('/stats', authenticateToken, async (req, res, next) => {
       _count: {
         id: true,
       },
+      _avg: {
+        registeredVoters: true,
+      },
     });
 
     const stats = {
@@ -132,6 +135,7 @@ router.get('/stats', authenticateToken, async (req, res, next) => {
       voterStats: {
         totalRegisteredVoters: voterStats._sum.registeredVoters || 0,
         totalPollingStations: voterStats._count.id || 0,
+        averageRegisteredVoters: voterStats._avg.registeredVoters || 0,
       },
     };
 

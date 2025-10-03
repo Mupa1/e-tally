@@ -52,20 +52,19 @@
             placeholder="Search by name or code..."
             @input="handleSearch"
           />
-          <SearchableSelect
+          <CountyFilter
             v-model="selectedCountyOption"
-            :options="countyOptions"
             label="Filter by County"
-            placeholder="Search and select county..."
-            @update:modelValue="handleCountyFilterChange"
+            placeholder="Select county..."
+            @change="handleCountyFilterChange"
           />
-          <SearchableSelect
+          <ConstituencyFilter
             v-model="selectedConstituencyOption"
-            :options="constituencyOptions"
             label="Filter by Constituency"
-            placeholder="Search and select constituency..."
+            placeholder="Select constituency..."
             :disabled="!selectedCountyOption"
-            @update:modelValue="handleConstituencyFilterChange"
+            :county-id="selectedCountyOption?.value || null"
+            @change="handleConstituencyFilterChange"
           />
         </div>
       </div>
@@ -112,6 +111,8 @@ import {
   PageSizeSelector,
 } from '@/components';
 import SearchableSelect from '@/components/select/SearchableSelect.vue';
+import CountyFilter from '@/components/filters/CountyFilter.vue';
+import ConstituencyFilter from '@/components/filters/ConstituencyFilter.vue';
 import { type SelectOption } from '@/components/select';
 import SimpleTable from '@/components/table/SimpleTable.vue';
 import type {
@@ -134,7 +135,6 @@ const selectedConstituencyOption = ref<SelectOption | null>(null);
 // Computed properties
 const user = computed(() => authStore.user);
 const caws = computed(() => cawManagementStore.filteredCAWs);
-const counties = computed(() => countyManagementStore.filteredCounties);
 const constituencies = computed(
   () => constituencyManagementStore.filteredConstituencies
 );
@@ -151,52 +151,7 @@ const canDeleteCAW = computed(() => {
   return user.value?.role === 'SUPER_ADMIN';
 });
 
-const filteredConstituencies = computed(() => {
-  if (!selectedCountyOption.value?.value) return constituencies.value;
-  return constituencies.value.filter(
-    (c) => c.countyId === selectedCountyOption.value?.value
-  );
-});
-
 // Options for FormSelect components
-const countyOptions = computed<SelectOption[]>(() => [
-  { id: '', label: 'All Counties' },
-  ...counties.value.map((county) => ({
-    id: county.id,
-    label: county.name,
-    value: county.id,
-  })),
-]);
-
-const constituencyOptions = computed<SelectOption[]>(() => {
-  const options = [{ id: '', label: 'All Constituencies' }];
-
-  // If a county is selected, only show constituencies from that county
-  if (selectedCountyOption.value?.value) {
-    const countyConstituencies = constituencies.value.filter(
-      (constituency) =>
-        constituency.countyId === selectedCountyOption.value?.value
-    );
-    options.push(
-      ...countyConstituencies.map((constituency) => ({
-        id: constituency.id,
-        label: constituency.name,
-        value: constituency.id,
-      }))
-    );
-  } else {
-    // If no county selected, show all constituencies
-    options.push(
-      ...constituencies.value.map((constituency) => ({
-        id: constituency.id,
-        label: constituency.name,
-        value: constituency.id,
-      }))
-    );
-  }
-
-  return options;
-});
 
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
@@ -257,21 +212,52 @@ const handleSearch = () => {
   cawManagementStore.searchCAWs(searchTerm.value);
 };
 
-const handleCountyFilterChange = async (option: SelectOption | null) => {
-  selectedCountyOption.value = option;
+const handleCountyFilterChange = async (countyId: string | null) => {
+  // Find the county option to update the v-model
+  if (countyId) {
+    const county = countyManagementStore.counties.find(
+      (c) => c.id === countyId
+    );
+    selectedCountyOption.value = county
+      ? {
+          id: county.id,
+          value: county.id,
+          label: `${county.name} (${county.code})`,
+        }
+      : null;
+  } else {
+    selectedCountyOption.value = null;
+  }
+
   selectedConstituencyOption.value = null; // Reset constituency when county changes
 
   // Set selected county and fetch constituencies
-  constituencyManagementStore.setSelectedCounty(option?.value || null);
+  constituencyManagementStore.setSelectedCounty(countyId);
   await constituencyManagementStore.fetchConstituencies();
 
-  // Clear constituency filter when county changes
+  // Clear constituency filter and apply county filter
   cawManagementStore.filterByConstituency(null);
+  await cawManagementStore.filterByCounty(countyId);
 };
 
-const handleConstituencyFilterChange = (option: SelectOption | null) => {
-  selectedConstituencyOption.value = option;
-  cawManagementStore.filterByConstituency(option?.value || null);
+const handleConstituencyFilterChange = (constituencyId: string | null) => {
+  // Find the constituency option to update the v-model
+  if (constituencyId) {
+    const constituency = constituencyManagementStore.constituencies.find(
+      (c) => c.id === constituencyId
+    );
+    selectedConstituencyOption.value = constituency
+      ? {
+          id: constituency.id,
+          value: constituency.id,
+          label: `${constituency.name} (${constituency.code})`,
+        }
+      : null;
+  } else {
+    selectedConstituencyOption.value = null;
+  }
+
+  cawManagementStore.filterByConstituency(constituencyId);
 };
 
 const clearFilters = () => {

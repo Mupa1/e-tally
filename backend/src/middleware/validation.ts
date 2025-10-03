@@ -68,6 +68,7 @@ export const schemas = {
     role: Joi.string().optional(),
     isActive: Joi.string().valid('true', 'false').optional(),
     countyId: Joi.string().optional(),
+    constituencyId: Joi.string().optional(),
   }),
 
   electoralPositionPagination: Joi.object({

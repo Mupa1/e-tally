@@ -41,6 +41,7 @@ export const useCountyManagementStore = defineStore('countyManagement', () => {
         search: params.search !== undefined ? params.search : searchQuery.value,
         sortBy: params.sortBy || sortBy.value,
         sortOrder: params.sortOrder || sortOrder.value,
+        forceRefresh: params.forceRefresh,
       };
 
       const response = await countyService.getCounties(queryParams);

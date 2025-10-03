@@ -87,6 +87,12 @@ const valueClasses = computed(() => {
 });
 
 const formattedValue = computed(() => {
+  console.log(`StatisticsCardCompact ${props.name}:`, {
+    loading: props.loading,
+    value: props.value,
+    format: props.format,
+  });
+
   if (props.loading) return '';
 
   const val = props.value;
@@ -150,11 +156,12 @@ const formattedValue = computed(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
-    opacity: .5;
+    opacity: 0.5;
   }
 }
 </style>

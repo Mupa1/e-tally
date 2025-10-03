@@ -24,6 +24,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
   const sortBy = ref('createdAt');
   const sortOrder = ref<'asc' | 'desc'>('desc');
   const selectedConstituencyId = ref<string | null>(null);
+  const selectedCountyId = ref<string | null>(null);
 
   // Computed
   const filteredCAWs = computed(() => caws.value);
@@ -43,6 +44,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
         sortBy: params.sortBy || sortBy.value,
         sortOrder: params.sortOrder || sortOrder.value,
         constituencyId: params.constituencyId || selectedConstituencyId.value,
+        countyId: params.countyId || selectedCountyId.value,
       };
 
       const response = await cawService.getCAWs(queryParams);
@@ -177,6 +179,12 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     return fetchCAWs();
   };
 
+  const filterByCounty = (countyId: string | null) => {
+    selectedCountyId.value = countyId;
+    pagination.value.page = 1; // Reset to first page
+    return fetchCAWs();
+  };
+
   const sortCAWs = (field: string, order: 'asc' | 'desc') => {
     sortBy.value = field;
     sortOrder.value = order;
@@ -198,6 +206,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
   const clearFilters = async () => {
     searchQuery.value = '';
     selectedConstituencyId.value = null;
+    selectedCountyId.value = null;
     sortBy.value = 'createdAt';
     sortOrder.value = 'desc';
     pagination.value.page = 1;
@@ -237,6 +246,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     deleteCAW,
     searchCAWs,
     filterByConstituency,
+    filterByCounty,
     sortCAWs,
     changePage,
     changePageSize,

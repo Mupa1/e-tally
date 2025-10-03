@@ -134,6 +134,152 @@
 
             <!-- Settings submenu items -->
             <div v-if="expandedItems['Settings']" class="ml-6 mt-1 space-y-1">
+              <!-- Electoral Areas submenu -->
+              <div>
+                <button
+                  @click="toggleExpanded('Electoral Areas')"
+                  :class="[
+                    'group flex w-full gap-x-3 rounded-md p-2 text-sm font-medium items-center justify-between',
+                    expandedItems['Electoral Areas']
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                  ]"
+                >
+                  <div class="flex gap-x-3 items-center">
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        expandedItems['Electoral Areas']
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-sitemap',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    Electoral Areas
+                  </div>
+                  <i
+                    :class="[
+                      'fas fa-chevron-down text-xs transition-transform duration-200',
+                      expandedItems['Electoral Areas'] ? 'rotate-180' : '',
+                    ]"
+                  ></i>
+                </button>
+
+                <!-- Electoral Areas submenu items -->
+                <div
+                  v-if="expandedItems['Electoral Areas']"
+                  class="ml-6 mt-1 space-y-1"
+                >
+                  <router-link
+                    to="/election-overview"
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                      $route.name === 'ElectionHierarchyOverview'
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
+                  >
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        $route.name === 'ElectionHierarchyOverview'
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-chart-pie',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    Overview
+                  </router-link>
+                  <router-link
+                    to="/counties"
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                      $route.name === 'CountyManagement'
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
+                  >
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        $route.name === 'CountyManagement'
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-map-marker-alt',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    Counties
+                  </router-link>
+                  <router-link
+                    to="/constituencies"
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                      $route.name === 'ConstituencyManagement'
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
+                  >
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        $route.name === 'ConstituencyManagement'
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-landmark',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    Constituency
+                  </router-link>
+                  <router-link
+                    to="/caws"
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                      $route.name === 'CAWManagement'
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
+                  >
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        $route.name === 'CAWManagement'
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-building',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    County Assembly Wards
+                  </router-link>
+                  <router-link
+                    to="/pollingstation"
+                    :class="[
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                      $route.name === 'PollingStationManagement'
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                    ]"
+                  >
+                    <i
+                      :class="[
+                        'shrink-0 w-4 flex items-center justify-center',
+                        $route.name === 'PollingStationManagement'
+                          ? 'text-indigo-600'
+                          : 'text-gray-400 group-hover:text-indigo-600',
+                        'fas fa-poll',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    Polling Stations
+                  </router-link>
+                </div>
+              </div>
+
+              <!-- Data Management -->
               <router-link
                 to="/data-management"
                 :class="[
@@ -165,6 +311,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useNavigation } from '@/composables/useNavigation';
 
 defineProps<{
@@ -172,6 +319,7 @@ defineProps<{
 }>();
 
 const { navigation } = useNavigation();
+const route = useRoute();
 
 // Track expanded state for each menu item
 const expandedItems = reactive<Record<string, boolean>>({});
@@ -183,6 +331,20 @@ const initializeExpandedState = () => {
       expandedItems[item.name] = item.expanded || false;
     }
   });
+
+  // Check if any Electoral Areas page is active to expand Settings and Electoral Areas
+  const electoralAreasRoutes = [
+    'ElectionHierarchyOverview',
+    'CountyManagement',
+    'ConstituencyManagement',
+    'CAWManagement',
+    'PollingStationManagement',
+  ];
+
+  if (electoralAreasRoutes.includes(route.name as string)) {
+    expandedItems['Settings'] = true;
+    expandedItems['Electoral Areas'] = true;
+  }
 };
 
 // Watch for navigation changes and update expanded state

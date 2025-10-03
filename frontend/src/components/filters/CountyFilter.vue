@@ -67,9 +67,12 @@ const handleCountyChange = (value: SelectOption | null) => {
 };
 
 const loadCounties = async () => {
-  if (counties.value.length === 0) {
-    await countyManagementStore.fetchCounties({ limit: 1000 });
-  }
+  // Only force refresh if we don't have any counties yet
+  const shouldForceRefresh = counties.value.length === 0;
+  await countyManagementStore.fetchCounties({
+    limit: 1000,
+    forceRefresh: shouldForceRefresh,
+  });
 };
 
 // Lifecycle

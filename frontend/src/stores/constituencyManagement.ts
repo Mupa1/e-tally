@@ -56,6 +56,7 @@ export const useConstituencyManagementStore = defineStore(
             params.countyId !== undefined
               ? params.countyId
               : selectedCountyId.value,
+          forceRefresh: params.forceRefresh,
         };
 
         const response = await constituencyService.getConstituencies(

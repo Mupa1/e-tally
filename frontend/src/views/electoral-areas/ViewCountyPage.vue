@@ -71,7 +71,7 @@
         />
         <StatisticsCardCompact
           name="Total Wards"
-          :value="statsLoading ? 'Loading...' : totalWards"
+          :value="totalWards"
           icon="fas fa-building"
           color="green"
           format="number"
@@ -79,7 +79,7 @@
         />
         <StatisticsCardCompact
           name="Polling Stations"
-          :value="statsLoading ? 'Loading...' : totalPollingStations"
+          :value="totalPollingStations"
           icon="fas fa-poll"
           color="purple"
           format="number"
@@ -87,12 +87,23 @@
         />
         <StatisticsCardCompact
           name="Registered Voters"
-          :value="statsLoading ? 'Loading...' : totalRegisteredVoters"
+          :value="totalRegisteredVoters"
           icon="fas fa-users"
           color="orange"
           format="number"
           :loading="statsLoading"
         />
+
+        <!-- Debug info -->
+        <div
+          class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm"
+        >
+          <h4 class="font-semibold text-yellow-800 mb-2">Debug Info:</h4>
+          <p>Stats Loading: {{ statsLoading }}</p>
+          <p>Total Wards: {{ totalWards }}</p>
+          <p>Total Polling Stations: {{ totalPollingStations }}</p>
+          <p>Total Registered Voters: {{ totalRegisteredVoters }}</p>
+        </div>
       </StatisticsGrid>
 
       <!-- County Information Card -->
@@ -411,18 +422,10 @@ const loadCounty = async () => {
       return;
     }
 
-    // Fetch county details
-    await countyManagementStore.fetchCounties();
-    const foundCounty = countyManagementStore.counties.find(
-      (c) => c.id === countyId
-    );
-
-    if (!foundCounty) {
-      error.value = 'County not found';
-      return;
-    }
-
-    county.value = foundCounty;
+    // Fetch county details using the individual county API
+    const response = await countyManagementStore.fetchCounty(countyId);
+    county.value = response;
+    console.log('Loaded county data:', county.value);
 
     // Load statistics after county is loaded
     await loadCountyStatistics(countyId);
@@ -438,6 +441,9 @@ const loadCountyStatistics = async (countyId: string) => {
   try {
     statsLoading.value = true;
 
+    console.log('Loading statistics for county:', countyId);
+    console.log('Auth token:', authStore.token ? 'exists' : 'null');
+
     // Fetch county-specific statistics
     const response = await fetch(`/api/counties/${countyId}/stats`, {
       method: 'GET',
@@ -447,11 +453,95 @@ const loadCountyStatistics = async (countyId: string) => {
       },
     });
 
+    console.log('Statistics response status:', response.status);
+
     if (response.ok) {
       const data = await response.json();
-      totalWards.value = data.data?.totalWards || 0;
-      totalPollingStations.value = data.data?.totalPollingStations || 0;
-      totalRegisteredVoters.value = data.data?.totalRegisteredVoters || 0;
+      console.log('County statistics data:', data);
+
+      // Test data structure
+      console.log('Data structure test:');
+      console.log('data.data exists:', !!data.data);
+      console.log('data.data.byCAW exists:', !!data.data?.byCAW);
+      console.log(
+        'data.data.pollingStationStats exists:',
+        !!data.data?.pollingStationStats
+      );
+      console.log('data.data.voterStats exists:', !!data.data?.voterStats);
+
+      // Calculate total wards from byCAW array
+      console.log('byCAW array:', data.data?.byCAW);
+      const totalWardsCount =
+        data.data?.byCAW?.reduce((sum: number, item: any) => {
+          console.log('Processing CAW item:', item, 'current sum:', sum);
+          return sum + (item._count?.id || 0);
+        }, 0) || 0;
+      console.log('Calculated total wards:', totalWardsCount);
+
+      // Manual verification
+      const manualWardsCount =
+        6 + 5 + 4 + 5 + 6 + 5 + 5 + 5 + 5 + 5 + 5 + 4 + 5 + 5 + 4 + 5 + 5;
+      console.log('Manual calculation of wards:', manualWardsCount);
+      console.log('Expected polling stations: 3015');
+      console.log('Expected registered voters: 2005165');
+
+      totalWards.value = totalWardsCount;
+
+      // Get polling stations count
+      console.log('pollingStationStats:', data.data?.pollingStationStats);
+      const pollingStationsCount =
+        data.data?.pollingStationStats?._count?.id || 0;
+      console.log('Polling stations count:', pollingStationsCount);
+      totalPollingStations.value = pollingStationsCount;
+
+      // Get registered voters count
+      console.log('voterStats:', data.data?.voterStats);
+      const registeredVotersCount =
+        data.data?.voterStats?._sum?.registeredVoters || 0;
+      console.log('Registered voters count:', registeredVotersCount);
+      totalRegisteredVoters.value = registeredVotersCount;
+
+      console.log('Parsed statistics:', {
+        totalWards: totalWards.value,
+        totalPollingStations: totalPollingStations.value,
+        totalRegisteredVoters: totalRegisteredVoters.value,
+      });
+
+      console.log('Stats loading state:', statsLoading.value);
+
+      // Force reactivity update
+      totalWards.value = totalWards.value;
+      totalPollingStations.value = totalPollingStations.value;
+      totalRegisteredVoters.value = totalRegisteredVoters.value;
+
+      // Force DOM update
+      await nextTick();
+      console.log('After nextTick - Stats values:', {
+        totalWards: totalWards.value,
+        totalPollingStations: totalPollingStations.value,
+        totalRegisteredVoters: totalRegisteredVoters.value,
+      });
+
+      // Additional debugging
+      console.log('Reactive variables after assignment:');
+      console.log(
+        'totalWards.value:',
+        totalWards.value,
+        'type:',
+        typeof totalWards.value
+      );
+      console.log(
+        'totalPollingStations.value:',
+        totalPollingStations.value,
+        'type:',
+        typeof totalPollingStations.value
+      );
+      console.log(
+        'totalRegisteredVoters.value:',
+        totalRegisteredVoters.value,
+        'type:',
+        typeof totalRegisteredVoters.value
+      );
     } else {
       console.warn('Failed to load county statistics, using default values');
       // Set default values if stats endpoint doesn't exist yet

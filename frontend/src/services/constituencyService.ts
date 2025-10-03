@@ -61,6 +61,7 @@ export interface ConstituenciesParams {
   countyId?: string;
   fields?: string; // Comma-separated field list for selective loading
   cursor?: string; // For cursor-based pagination
+  forceRefresh?: boolean;
 }
 
 export interface ConstituencyStats {
@@ -128,9 +129,18 @@ class ConstituencyService {
     if (params.fields) queryParams.append('fields', params.fields);
     if (params.cursor) queryParams.append('cursor', params.cursor);
 
+    // Only add cache-busting for specific requests that need fresh data
+    if (params.forceRefresh) {
+      queryParams.append('_t', Date.now().toString());
+    }
+
     const response = await axios.get(
       `${API_BASE_URL}/constituencies?${queryParams.toString()}`,
-      { headers: this.getAuthHeaders() }
+      {
+        headers: this.getAuthHeaders(),
+        // Only disable caching when forcing refresh
+        ...(params.forceRefresh && { cache: 'no-cache' }),
+      }
     );
     return response.data;
   }
