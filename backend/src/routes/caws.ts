@@ -23,8 +23,15 @@ router.get(
   validateQuery(schemas.pagination),
   async (req, res, next) => {
     try {
-      const { page, limit, sortBy, sortOrder, constituencyId, countyId, search } =
-        req.query as any;
+      const {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        constituencyId,
+        countyId,
+        search,
+      } = req.query as any;
       const skip = (page - 1) * limit;
 
       // Build where clause
@@ -398,5 +405,90 @@ router.post(
     }
   }
 );
+
+// Get CAW statistics
+router.get('/stats', authenticateToken, async (req, res, next) => {
+  try {
+    const { cawId } = req.query as any;
+
+    let whereClause: any = {};
+    if (cawId) {
+      whereClause.id = cawId;
+    }
+
+    // Get voter registration stats
+    const voterStats = await prisma.voterRegistration.aggregate({
+      where: {
+        pollingStation: {
+          cawId: cawId ? cawId : undefined,
+        },
+      },
+      _sum: {
+        registeredVoters: true,
+      },
+      _count: {
+        id: true,
+      },
+      _avg: {
+        registeredVoters: true,
+      },
+    });
+
+    // Get polling station stats
+    const pollingStationStats = await prisma.pollingStation.aggregate({
+      where: {
+        cawId: cawId ? cawId : undefined,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get CAW count
+    const cawCount = await prisma.cAW.count({
+      where: whereClause,
+    });
+
+    // Get CAW details if specific CAW requested
+    let caw = null;
+    if (cawId) {
+      caw = await prisma.cAW.findUnique({
+        where: { id: cawId },
+        include: {
+          constituency: {
+            include: {
+              county: true,
+            },
+          },
+          _count: {
+            select: {
+              pollingStations: true,
+            },
+          },
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalCount: cawCount,
+        caw,
+        voterStats: {
+          totalRegisteredVoters: voterStats._sum.registeredVoters || 0,
+          totalPollingStations: pollingStationStats._count.id || 0,
+          averageRegisteredVoters: voterStats._avg.registeredVoters || 0,
+        },
+        pollingStationStats: {
+          _count: {
+            id: pollingStationStats._count.id || 0,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

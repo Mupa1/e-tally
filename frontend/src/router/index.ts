@@ -87,10 +87,24 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'CAW Management - e-Tally' },
   },
   {
+    path: '/caws/:id',
+    name: 'ViewCAW',
+    component: () => import('@/views/electoral-areas/ViewCAWPage.vue'),
+    meta: { requiresAuth: true, title: 'CAW Details - e-Tally' },
+  },
+  {
     path: '/pollingstation',
     name: 'PollingStationManagement',
-    component: ElectionHierarchy,
+    component: () =>
+      import('@/views/electoral-areas/PollingStationManagement.vue'),
     meta: { requiresAuth: true, title: 'Polling Station Management - e-Tally' },
+  },
+  {
+    path: '/pollingstations/:id',
+    name: 'ViewPollingStation',
+    component: () =>
+      import('@/views/electoral-areas/ViewPollingStationPage.vue'),
+    meta: { requiresAuth: true, title: 'Polling Station Details - e-Tally' },
   },
   {
     path: '/election-overview',

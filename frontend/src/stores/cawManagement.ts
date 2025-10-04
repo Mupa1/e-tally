@@ -6,6 +6,7 @@ import {
   type CAWsParams,
   type CreateCAWData,
   type UpdateCAWData,
+  type CAWStatsResponse,
 } from '@/services/cawService';
 
 export const useCAWManagementStore = defineStore('cawManagement', () => {
@@ -25,6 +26,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
   const sortOrder = ref<'asc' | 'desc'>('desc');
   const selectedConstituencyId = ref<string | null>(null);
   const selectedCountyId = ref<string | null>(null);
+  const stats = ref<CAWStatsResponse['data'] | null>(null);
 
   // Computed
   const filteredCAWs = computed(() => caws.value);
@@ -221,6 +223,27 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     currentCAW.value = null;
   };
 
+  const fetchCAWStats = async (cawId?: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+
+      const response = await cawService.getCAWStats(cawId);
+
+      if (response.success) {
+        stats.value = response.data;
+        return response.data;
+      }
+    } catch (err: any) {
+      error.value =
+        err.response?.data?.message || 'Failed to fetch CAW statistics';
+      console.error('Error fetching CAW statistics:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     // State
     caws,
@@ -233,6 +256,7 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     sortOrder,
     selectedConstituencyId,
     selectedCountyId,
+    stats,
 
     // Computed
     filteredCAWs,
@@ -254,5 +278,6 @@ export const useCAWManagementStore = defineStore('cawManagement', () => {
     clearFilters,
     clearError,
     clearCurrentCAW,
+    fetchCAWStats,
   };
 });

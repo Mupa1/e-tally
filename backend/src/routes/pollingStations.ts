@@ -198,10 +198,16 @@ router.get(
                 name: true,
               },
             },
-            // Only load voter registration count, not full records
+            // Load voter registration count and sum
             _count: {
               select: {
                 voterRegistration: true,
+              },
+            },
+            // Sum of registered voters across all voter registration records
+            voterRegistration: {
+              select: {
+                registeredVoters: true,
               },
             },
           },
@@ -219,10 +225,22 @@ router.get(
         ? pollingStations[pollingStations.length - 1]?.id
         : null;
 
+      // Calculate total registered voters for each polling station
+      const pollingStationsWithVoterCount = pollingStations.map(
+        (station: any) => ({
+          ...station,
+          totalRegisteredVoters:
+            station.voterRegistration?.reduce(
+              (sum: number, reg: any) => sum + reg.registeredVoters,
+              0
+            ) || 0,
+        })
+      );
+
       res.json({
         success: true,
         data: {
-          pollingStations,
+          pollingStations: pollingStationsWithVoterCount,
           pagination: {
             total: totalCount,
             page: parseInt(page) || 1,
@@ -243,11 +261,33 @@ router.get(
 // GET /api/polling-stations/stats - Get polling station statistics
 router.get('/stats', authenticateToken, async (req, res, next) => {
   try {
-    const { countyId, constituencyId } = req.query as any;
+    const { countyId, constituencyId, pollingStationId } = req.query as any;
 
     const where: any = { isActive: true };
     if (countyId) where.constituency = { countyId };
     if (constituencyId) where.constituencyId = constituencyId;
+    if (pollingStationId) where.id = pollingStationId;
+
+    // Get polling station details if specific polling station requested
+    let pollingStation = null;
+    if (pollingStationId) {
+      pollingStation = await prisma.pollingStation.findUnique({
+        where: { id: pollingStationId },
+        include: {
+          constituency: {
+            include: {
+              county: true,
+            },
+          },
+          caw: true,
+          _count: {
+            select: {
+              voterRegistration: true,
+            },
+          },
+        },
+      });
+    }
 
     const [totalCount, byCounty, byConstituency, voterStats] =
       await Promise.all([
@@ -268,7 +308,9 @@ router.get('/stats', authenticateToken, async (req, res, next) => {
         }),
         prisma.voterRegistration.aggregate({
           where: {
-            pollingStation: { isActive: true },
+            pollingStation: pollingStationId
+              ? { id: pollingStationId }
+              : { isActive: true },
           },
           _sum: { registeredVoters: true },
           _avg: { registeredVoters: true },
@@ -281,9 +323,15 @@ router.get('/stats', authenticateToken, async (req, res, next) => {
       success: true,
       data: {
         totalCount,
+        pollingStation,
         byCounty,
         byConstituency,
-        voterStats,
+        voterStats: {
+          totalRegisteredVoters: voterStats._sum.registeredVoters || 0,
+          averageRegisteredVoters: voterStats._avg.registeredVoters || 0,
+          maxRegisteredVoters: voterStats._max.registeredVoters || 0,
+          minRegisteredVoters: voterStats._min.registeredVoters || 0,
+        },
       },
     });
   } catch (error: any) {

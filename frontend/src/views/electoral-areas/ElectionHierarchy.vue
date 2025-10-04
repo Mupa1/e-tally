@@ -40,7 +40,7 @@
               variant="secondary"
             />
             <QuickActionButton
-              href="#"
+              to="/pollingstation"
               text="Polling Stations"
               icon="fa-poll"
               variant="warning"

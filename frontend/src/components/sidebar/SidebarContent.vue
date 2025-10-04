@@ -301,6 +301,29 @@
                 ></i>
                 Data Management
               </router-link>
+
+              <!-- User Management -->
+              <router-link
+                to="/users"
+                :class="[
+                  'group flex gap-x-3 rounded-md p-2 text-sm font-medium items-center',
+                  $route.name === 'UserManagement'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600',
+                ]"
+              >
+                <i
+                  :class="[
+                    'shrink-0 w-4 flex items-center justify-center',
+                    $route.name === 'UserManagement'
+                      ? 'text-indigo-600'
+                      : 'text-gray-400 group-hover:text-indigo-600',
+                    'fas fa-users',
+                  ]"
+                  aria-hidden="true"
+                ></i>
+                User Management
+              </router-link>
             </div>
           </div>
         </li>
@@ -341,9 +364,18 @@ const initializeExpandedState = () => {
     'PollingStationManagement',
   ];
 
+  // Check if any Settings submenu page is active to expand Settings
+  const settingsRoutes = [
+    'DataManagement',
+    'UserManagement',
+    ...electoralAreasRoutes,
+  ];
+
   if (electoralAreasRoutes.includes(route.name as string)) {
     expandedItems['Settings'] = true;
     expandedItems['Electoral Areas'] = true;
+  } else if (settingsRoutes.includes(route.name as string)) {
+    expandedItems['Settings'] = true;
   }
 };
 

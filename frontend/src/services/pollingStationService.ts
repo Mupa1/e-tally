@@ -57,13 +57,18 @@ api.interceptors.response.use(
   }
 );
 
-export interface CAW {
+export interface PollingStation {
   id: string;
   code: string;
   name: string;
-  constituencyId: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  constituencyId: string;
+  cawId: string;
   constituency?: {
     id: string;
     code: string;
@@ -74,15 +79,20 @@ export interface CAW {
       name: string;
     };
   };
+  caw?: {
+    id: string;
+    code: string;
+    name: string;
+  };
   _count?: {
-    pollingStations: number;
+    voterRegistrations: number;
   };
 }
 
-export interface CAWsResponse {
+export interface PollingStationsResponse {
   success: boolean;
   data: {
-    caws: CAW[];
+    pollingStations: PollingStation[];
     pagination: {
       total: number;
       page: number;
@@ -92,59 +102,62 @@ export interface CAWsResponse {
   };
 }
 
-export interface CAWResponse {
+export interface PollingStationResponse {
   success: boolean;
   data: {
-    caw: CAW;
+    pollingStation: PollingStation;
   };
 }
 
-export interface CAWStatsResponse {
+export interface PollingStationStatsResponse {
   success: boolean;
   data: {
     totalCount: number;
-    caw?: CAW;
+    pollingStation?: PollingStation;
     voterStats: {
       totalRegisteredVoters: number;
-      totalPollingStations: number;
       averageRegisteredVoters: number;
-    };
-    pollingStationStats: {
-      _count: {
-        id: number;
-      };
     };
   };
 }
 
-export interface CreateCAWData {
+export interface CreatePollingStationData {
   code: string;
   name: string;
   constituencyId: string;
+  cawId: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  registeredVoters?: number;
 }
 
-export interface UpdateCAWData {
+export interface UpdatePollingStationData {
   code?: string;
   name?: string;
   constituencyId?: string;
+  cawId?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  registeredVoters?: number;
 }
 
-export interface CAWsParams {
+export interface PollingStationsParams {
   page?: number;
   limit?: number;
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   constituencyId?: string;
+  cawId?: string;
   countyId?: string;
 }
 
-export interface BulkImportCAWsData {
-  caws: CreateCAWData[];
-}
-
-class CAWService {
-  async getCAWs(params: CAWsParams = {}): Promise<CAWsResponse> {
+class PollingStationService {
+  async getPollingStations(
+    params: PollingStationsParams = {}
+  ): Promise<PollingStationsResponse> {
     const queryParams = new URLSearchParams();
 
     if (params.page) queryParams.append('page', params.page.toString());
@@ -154,46 +167,61 @@ class CAWService {
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     if (params.constituencyId)
       queryParams.append('constituencyId', params.constituencyId);
+    if (params.cawId) queryParams.append('cawId', params.cawId);
     if (params.countyId) queryParams.append('countyId', params.countyId);
 
-    const response = await api.get(`/caws?${queryParams.toString()}`);
+    const response = await api.get(
+      `/polling-stations?${queryParams.toString()}`
+    );
     return response.data;
   }
 
-  async getCAWById(id: string): Promise<CAWResponse> {
-    const response = await api.get(`/caws/${id}`);
+  async getPollingStationById(id: string): Promise<PollingStationResponse> {
+    const response = await api.get(`/polling-stations/${id}`);
     return response.data;
   }
 
-  async getCAWStats(cawId?: string): Promise<CAWStatsResponse> {
+  async getPollingStationStats(
+    pollingStationId?: string
+  ): Promise<PollingStationStatsResponse> {
     const queryParams = new URLSearchParams();
-    if (cawId) queryParams.append('cawId', cawId);
+    if (pollingStationId)
+      queryParams.append('pollingStationId', pollingStationId);
 
-    const response = await api.get(`/caws/stats?${queryParams.toString()}`);
+    const response = await api.get(
+      `/polling-stations/stats?${queryParams.toString()}`
+    );
     return response.data;
   }
 
-  async createCAW(data: CreateCAWData): Promise<CAWResponse> {
-    const response = await api.post('/caws', data);
+  async createPollingStation(
+    data: CreatePollingStationData
+  ): Promise<PollingStationResponse> {
+    const response = await api.post('/polling-stations', data);
     return response.data;
   }
 
-  async updateCAW(id: string, data: UpdateCAWData): Promise<CAWResponse> {
-    const response = await api.put(`/caws/${id}`, data);
+  async updatePollingStation(
+    id: string,
+    data: UpdatePollingStationData
+  ): Promise<PollingStationResponse> {
+    const response = await api.put(`/polling-stations/${id}`, data);
     return response.data;
   }
 
-  async deleteCAW(id: string): Promise<{ success: boolean; message: string }> {
-    const response = await api.delete(`/caws/${id}`);
+  async deletePollingStation(
+    id: string
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await api.delete(`/polling-stations/${id}`);
     return response.data;
   }
 
-  async bulkImportCAWs(
-    data: BulkImportCAWsData
-  ): Promise<{ success: boolean; message: string; data: { count: number } }> {
-    const response = await api.post('/caws/bulk-import', data);
+  async bulkUploadPollingStations(data: {
+    pollingStations: any[];
+  }): Promise<{ success: boolean; message: string; data: { count: number } }> {
+    const response = await api.post('/polling-stations/bulk-upload', data);
     return response.data;
   }
 }
 
-export const cawService = new CAWService();
+export const pollingStationService = new PollingStationService();
