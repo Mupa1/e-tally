@@ -185,13 +185,32 @@
         name="pagination"
         :pagination="pagination"
         :change-page="changePage"
+        :change-page-size="changePageSize"
       >
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            Showing
-            {{ (pagination.page - 1) * pagination.limit + 1 }} to
-            {{ Math.min(pagination.page * pagination.limit, pagination.total) }}
-            of {{ pagination.total }} results
+          <div class="flex items-center space-x-4">
+            <div class="text-sm text-gray-700">
+              Showing
+              {{ (pagination.page - 1) * pagination.limit + 1 }} to
+              {{ Math.min(pagination.page * pagination.limit, pagination.total) }}
+              of {{ pagination.total }} results
+            </div>
+            <!-- Page Size Selector -->
+            <div class="flex items-center space-x-2">
+              <label for="page-size" class="text-sm text-gray-700">Show:</label>
+              <select
+                id="page-size"
+                :value="pagination.limit"
+                @change="handlePageSizeChange"
+                class="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="500">500</option>
+              </select>
+              <span class="text-sm text-gray-700">per page</span>
+            </div>
           </div>
           <nav class="flex space-x-2">
             <button
@@ -285,6 +304,7 @@ const emit = defineEmits<{
   action: [action: string, item: any, index: number];
   sort: [column: string, order: 'asc' | 'desc'];
   'page-change': [page: number];
+  'page-size-change': [pageSize: number];
   add: [];
 }>();
 
@@ -390,5 +410,11 @@ const handleAction = (action: string, item: any, index: number) => {
 
 const changePage = (page: number) => {
   emit('page-change', page);
+};
+
+const handlePageSizeChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const pageSize = parseInt(target.value);
+  emit('page-size-change', pageSize);
 };
 </script>

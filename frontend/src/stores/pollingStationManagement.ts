@@ -20,7 +20,7 @@ export const usePollingStationManagementStore = defineStore(
     const pagination = ref({
       total: 0,
       page: 1,
-      limit: 10,
+      limit: 20,
       totalPages: 0,
     });
     const searchQuery = ref('');
