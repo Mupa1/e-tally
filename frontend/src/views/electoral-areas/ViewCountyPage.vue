@@ -8,14 +8,7 @@
     "
   >
     <!-- Loading State -->
-    <div v-if="loading" class="text-center p-8">
-      <div
-        class="inline-flex items-center justify-center w-8 h-8 text-indigo-600"
-      >
-        <i class="fas fa-spinner fa-spin text-2xl"></i>
-      </div>
-      <p class="mt-2 text-gray-600">Loading county details...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading county details..." />
 
     <!-- Error State -->
     <div
@@ -381,6 +374,7 @@ import { useCountyManagementStore } from '@/stores/countyManagement';
 import { useAuthStore } from '@/stores/auth';
 import type { County } from '@/services/countyService';
 import MainLayout from '@/components/MainLayout.vue';
+import { LoadingState } from '@/components';
 import {
   StatisticsGrid,
   StatisticsCardCompact,

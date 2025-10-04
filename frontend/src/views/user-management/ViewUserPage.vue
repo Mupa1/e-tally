@@ -22,12 +22,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center items-center py-12">
-      <div class="text-center">
-        <i class="fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
-        <p class="text-gray-600">Loading user details...</p>
-      </div>
-    </div>
+    <LoadingState v-if="loading" message="Loading user details..." />
 
     <!-- User Details -->
     <div v-else-if="user" class="space-y-6">
@@ -297,6 +292,7 @@ import type { User, UserRole } from '@/services/userService';
 import MainLayout from '@/components/MainLayout.vue';
 import Button from '@/components/Button.vue';
 import ActionConfirmation from '@/components/ActionConfirmation.vue';
+import { LoadingState } from '@/components';
 
 const route = useRoute();
 const router = useRouter();

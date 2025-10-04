@@ -52,13 +52,6 @@
             placeholder="Search by name or code..."
             @input="handleSearch"
           />
-          <FormSelect
-            v-model="pageSizeOption"
-            :options="pageSizeOptions"
-            label="Show"
-            placeholder="Select page size"
-            @change="handlePageSizeChange"
-          />
         </div>
       </div>
     </div>
@@ -75,6 +68,7 @@
       @action="handleTableAction"
       @sort="handleSort"
       @page-change="changePage"
+      @page-size-change="changePageSize"
     >
       <!-- Custom Code Cell -->
       <template #cell-code="{ value }">
@@ -165,7 +159,6 @@ import type { County } from '@/services/countyService';
 import MainLayout from '@/components/MainLayout.vue';
 import CreateCountyModal from '@/components/pages/counties/CreateCountyModal.vue';
 import EditCountyModal from '@/components/pages/counties/EditCountyModal.vue';
-import { FormSelect } from '@/components/select';
 import SimpleTable from '@/components/table/SimpleTable.vue';
 import type { SimpleTableColumn } from '@/components/table/SimpleTable.vue';
 import { SearchInput, ClearButton, ErrorAlert, Button } from '@/components';
@@ -181,17 +174,6 @@ const selectedCounty = ref<County | null>(null);
 const searchQuery = ref('');
 const sortBy = ref('createdAt');
 const sortOrder = ref<'asc' | 'desc'>('desc');
-const pageSize = ref(10);
-
-// Page size options for FormSelect
-const pageSizeOptions = [
-  { id: '10', value: '10', label: '10 per page' },
-  { id: '20', value: '20', label: '20 per page' },
-  { id: '50', value: '50', label: '50 per page' },
-];
-
-// Page size option for FormSelect
-const pageSizeOption = ref({ id: '10', value: '10', label: '10 per page' });
 
 // Table columns configuration
 const tableColumns: SimpleTableColumn[] = [
@@ -222,9 +204,7 @@ const user = computed(() => authStore.user);
 
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
-  return (
-    searchQuery.value.trim() !== '' || pageSizeOption.value?.value !== '10'
-  );
+  return searchQuery.value.trim() !== '';
 });
 
 // Methods
@@ -239,15 +219,12 @@ const handleSearch = () => {
 
 const clearFilters = async () => {
   searchQuery.value = '';
-  pageSizeOption.value = { id: '10', value: '10', label: '10 per page' };
   countyManagementStore.setSearchQuery('');
-  countyManagementStore.changePageSize(10);
   await countyManagementStore.fetchCounties({ page: 1 });
 };
 
-const changePageSize = (limit: number) => {
-  countyManagementStore.changePageSize(limit);
-  countyManagementStore.fetchCounties({ page: 1 });
+const changePageSize = (pageSize: number) => {
+  countyManagementStore.changePageSize(pageSize);
 };
 
 const handleSort = (field: string, order: 'asc' | 'desc') => {
@@ -274,12 +251,6 @@ const handleTableAction = (action: string, item: County, index: number) => {
 
 const changePage = (page: number) => {
   countyManagementStore.changePage(page);
-};
-
-const handlePageSizeChange = (option: any) => {
-  const value = option?.value || option;
-  pageSize.value = Number(value);
-  countyManagementStore.changePageSize(Number(value));
 };
 
 const viewCounty = (county: County) => {
@@ -352,29 +323,4 @@ watch(searchQuery, () => {
 
   return () => clearTimeout(timeoutId);
 });
-
-// Watch for page size changes
-watch(pageSize, (newValue) => {
-  const option = pageSizeOptions.find(
-    (opt) => opt.value === newValue.toString()
-  );
-  if (option) {
-    pageSizeOption.value = option;
-  }
-});
-
-// Initialize page size option
-watch(
-  () => countyManagementStore.pagination.limit,
-  (newLimit) => {
-    pageSize.value = newLimit;
-    const option = pageSizeOptions.find(
-      (opt) => opt.value === newLimit.toString()
-    );
-    if (option) {
-      pageSizeOption.value = option;
-    }
-  },
-  { immediate: true }
-);
 </script>

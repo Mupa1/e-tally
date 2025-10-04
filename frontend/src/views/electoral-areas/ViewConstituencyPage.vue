@@ -10,14 +10,7 @@
     "
   >
     <!-- Loading State -->
-    <div v-if="loading" class="text-center p-8">
-      <div
-        class="inline-flex items-center justify-center w-8 h-8 text-indigo-600"
-      >
-        <i class="fas fa-spinner fa-spin text-2xl"></i>
-      </div>
-      <p class="mt-2 text-gray-600">Loading constituency details...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading constituency details..." />
 
     <!-- Error State -->
     <div
@@ -506,6 +499,7 @@ import { useConstituencyManagementStore } from '@/stores/constituencyManagement'
 import { useAuthStore } from '@/stores/auth';
 import type { Constituency } from '@/services/constituencyService';
 import MainLayout from '@/components/MainLayout.vue';
+import { LoadingState } from '@/components';
 
 const route = useRoute();
 const router = useRouter();

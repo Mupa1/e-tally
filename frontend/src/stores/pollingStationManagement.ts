@@ -64,7 +64,7 @@ export const usePollingStationManagementStore = defineStore(
             total: response.data.pagination.total,
             page: response.data.pagination.page,
             limit: response.data.pagination.limit,
-            totalPages: response.data.pagination.pages,
+            totalPages: response.data.pagination.totalPages,
           };
         }
       } catch (err: any) {

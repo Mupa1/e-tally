@@ -8,6 +8,7 @@ export { default as ActionConfirmation } from './ActionConfirmation.vue';
 export { default as ButtonDemo } from './ButtonDemo.vue';
 export { default as ErrorAlert } from './ErrorAlert.vue';
 export { default as SuccessAlert } from './SuccessAlert.vue';
+export { default as LoadingState } from './LoadingState.vue';
 export { default as GoBack } from './GoBack.vue';
 export { default as FormInput } from './FormInput.vue';
 export { default as PasswordInput } from './PasswordInput.vue';

@@ -67,11 +67,10 @@ const handleCountyChange = (value: SelectOption | null) => {
 };
 
 const loadCounties = async () => {
-  // Only force refresh if we don't have any counties yet
-  const shouldForceRefresh = counties.value.length === 0;
+  // Always load all counties for the filter dropdown
   await countyManagementStore.fetchCounties({
     limit: 1000,
-    forceRefresh: shouldForceRefresh,
+    forceRefresh: true,
   });
 };
 

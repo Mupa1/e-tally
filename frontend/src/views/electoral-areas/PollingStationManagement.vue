@@ -51,6 +51,18 @@
       </div>
     </div>
 
+    <!-- Clear Filters Button (above table) -->
+    <div v-if="hasActiveFilters" class="mb-4 flex justify-end">
+      <Button
+        text="Clear All Filters"
+        variant="secondary"
+        size="md"
+        icon="fas fa-times"
+        icon-position="left"
+        @click="clearFilters"
+      />
+    </div>
+
     <!-- Polling Stations Table -->
     <SimpleTable
       :data="pollingStations"
@@ -89,7 +101,7 @@ import { useCountyManagementStore } from '@/stores/countyManagement';
 import { useConstituencyManagementStore } from '@/stores/constituencyManagement';
 import { useCAWManagementStore } from '@/stores/cawManagement';
 import MainLayout from '@/components/MainLayout.vue';
-import { ErrorAlert, ClearButton } from '@/components';
+import { ErrorAlert, ClearButton, Button } from '@/components';
 import SearchInput from '@/components/SearchInput.vue';
 import CountyFilter from '@/components/filters/CountyFilter.vue';
 import ConstituencyFilter from '@/components/filters/ConstituencyFilter.vue';

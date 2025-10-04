@@ -116,7 +116,7 @@
                 <!-- Data Rows -->
                 <tr
                   v-else
-                  v-for="(item, index) in paginatedData"
+                  v-for="(item, index) in displayData"
                   :key="getRowKey(item, index)"
                   :class="[
                     'hover:bg-gray-50',
@@ -192,7 +192,9 @@
             <div class="text-sm text-gray-700">
               Showing
               {{ (pagination.page - 1) * pagination.limit + 1 }} to
-              {{ Math.min(pagination.page * pagination.limit, pagination.total) }}
+              {{
+                Math.min(pagination.page * pagination.limit, pagination.total)
+              }}
               of {{ pagination.total }} results
             </div>
             <!-- Page Size Selector -->
@@ -334,6 +336,16 @@ const paginatedData = computed(() => {
   const start = (props.pagination.page - 1) * props.pagination.limit;
   const end = start + props.pagination.limit;
   return sortedData.value.slice(start, end);
+});
+
+const displayData = computed(() => {
+  // If we have server-side pagination, use the raw data
+  // The server has already paginated the data
+  if (props.pagination && props.pagination.totalPages > 1) {
+    return sortedData.value;
+  }
+  // Otherwise, use client-side pagination
+  return paginatedData.value;
 });
 
 const visiblePages = computed(() => {
